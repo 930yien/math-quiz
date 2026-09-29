@@ -4,17 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>115年度教師檢定數學科複習 - GBA 智慧練功房</title>
-<!-- 引入 Chart.js 用於第 3 層的雷達圖分析 -->
+<!-- 引入 Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-/* ── GBA 模擬器與品牌主題色系變數設定（全面套用華康雅風體感、字體放大 100%） ── */
+/* ── 全面強制套用華康雅風體與高質感視覺變數 ── */
 *{box-sizing:border-box;margin:0;padding:0;}
 :root {
   --bg-color: #121620;
   --card-bg: #1e2433;
-  --primary: #4ecca3;        /* 復古霓虹綠 */
+  --primary: #4ecca3;        
   --primary-dark: #233142;
-  --accent: #ff6b6b;         /* 警示紅/電玩橘 */
+  --accent: #ff6b6b;         
   --accent-light: #2c354d;
   --text-main: #f0f0f0;
   --text-muted: #b0bac2;
@@ -70,29 +70,24 @@
 }
 
 body {
-  /* 融合華康雅風體與特選圓黑雅緻字型設定 */
-  font-family: "华康雅风体", "LiHei Pro", "Microsoft JhengHei", "微軟正黑體", "Apple LiGothic Medium", sans-serif;
+  font-family: "华康雅风体", "LiHei Pro", "Microsoft JhengHei", "微軟正黑體", sans-serif !important;
   background: var(--bg-color);
   color: var(--text-main);
   line-height: 1.9;
-  font-size: 30px; 
+  font-size: 28px; 
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
   transition: background 0.4s ease, color 0.4s ease;
 }
 
-p, span, label, input, select, button { font-size: 1.1rem; font-family: inherit; }
-.header h1 { font-size: 1.9rem !important; }
-.header p { font-size: 1.15rem !important; }
-.header-signboard { font-size: 1rem !important; }
-.mode-card h3 { font-size: 1.5rem !important; }
-.mode-card p { font-size: 1.05rem !important; }
-.card h2 { font-size: 1.35rem !important; }
-.q-title { font-size: 1.25rem !important; }
-.opt span { font-size: 1.15rem !important; }
-#timer { font-size: 1.6rem !important; }
-.score-big { font-size: 3.5rem !important; }
+p, span, label, input, select, button, div { font-family: inherit !important; }
+.header h1 { font-size: 1.8rem !important; }
+.header p { font-size: 1.1rem !important; }
+.mode-card h3 { font-size: 1.4rem !important; }
+.card h2 { font-size: 1.3rem !important; }
+.q-title { font-size: 1.2rem !important; }
+.opt span { font-size: 1.1rem !important; }
 
 .wave-bg-container {
   position: fixed; bottom: 0; left: 0; width: 100%; height: 280px;
@@ -104,95 +99,56 @@ p, span, label, input, select, button { font-size: 1.1rem; font-family: inherit;
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   animation: waveMotion 8s linear infinite;
 }
-.wave:nth-child(2) {
-  bottom: 15px; opacity: 0.5;
-  animation: waveMotion 12s linear infinite reverse;
-}
-@keyframes waveMotion {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
+.wave:nth-child(2) { bottom: 15px; opacity: 0.5; animation: waveMotion 12s linear infinite reverse; }
+@keyframes waveMotion { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
 .gba-grid-bg {
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background-image: 
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 body::after {
-  content: " ";
-  display: var(--crt-scanline); position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+  content: " "; display: var(--crt-scanline); position: fixed; inset: 0;
   background: linear-gradient(rgba(18, 22, 32, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
   background-size: 100% 4px; z-index: 999; pointer-events: none; opacity: 0.5;
 }
 
 #intro-overlay {
-  position: fixed; inset: 0; background: #080a0f;
-  z-index: 9999; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; color: #4ecca3;
-  animation: gbaFadeOut 1.2s ease 2s forwards;
-  pointer-events: none; font-family: inherit;
+  position: fixed; inset: 0; background: #080a0f; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #4ecca3; animation: gbaFadeOut 1.2s ease 2s forwards; pointer-events: none;
 }
 .gba-boot-screen {
   border: 5px double #4ecca3; padding: 45px 70px; background: #121620;
-  box-shadow: 0 0 50px rgba(78,204,163,0.6); text-align: center;
-  position: relative; overflow: hidden;
+  box-shadow: 0 0 50px rgba(78,204,163,0.6); text-align: center; position: relative;
 }
-.gba-nintendo-txt { font-size: 22px; letter-spacing: 5px; color: #a0aab2; margin-bottom: 14px; text-transform: uppercase; font-weight: bold; }
-.intro-logo { font-size: 42px; font-weight: 900; letter-spacing: 3px; color: #4ecca3; margin-bottom: 14px; text-shadow: 0 0 15px rgba(78,204,163,0.8); }
-.intro-sub { font-size: 24px; color: #ff6b6b; letter-spacing: 2px; font-weight: bold; }
-
-.rocket-left, .rocket-right {
-  position: absolute; font-size: 36px; top: 50%; transform: translateY(-50%);
-  animation: rocketFly 1.5s ease-in-out infinite alternate;
-}
-.rocket-left { left: 15px; animation-delay: 0s; }
-.rocket-right { right: 15px; animation-delay: 0.75s; transform: translateY(-50%) scaleX(-1); }
-
-@keyframes rocketFly {
-  0% { transform: translateY(-50%) translateY(-8px) rotate(-10deg); }
-  100% { transform: translateY(-50%) translateY(8px) rotate(10deg); }
-}
-
-@keyframes gbaFadeOut {
-  0% { opacity: 1; visibility: visible; }
-  100% { opacity: 0; visibility: hidden; }
-}
+.gba-nintendo-txt { font-size: 20px; letter-spacing: 4px; color: #a0aab2; margin-bottom: 10px; font-weight: bold; }
+.intro-logo { font-size: 38px; font-weight: 900; color: #4ecca3; margin-bottom: 10px; }
+.intro-sub { font-size: 22px; color: #ff6b6b; font-weight: bold; }
+.rocket-left, .rocket-right { position: absolute; font-size: 34px; top: 50%; transform: translateY(-50%); animation: rocketFly 1.5s infinite alternate; }
+.rocket-left { left: 15px; } .rocket-right { right: 15px; transform: translateY(-50%) scaleX(-1); }
+@keyframes rocketFly { 0% { transform: translateY(-50%) translateY(-6px); } 100% { transform: translateY(-50%) translateY(6px); } }
+@keyframes gbaFadeOut { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
 
 .header {
-  background: var(--header-bg);
-  color: #fff; padding: 35px 30px; text-align: center;
-  position: relative; z-index: 10;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-  border-bottom: 5px solid var(--accent);
-  transition: background 0.4s ease;
+  background: var(--header-bg); color: #fff; padding: 30px; text-align: center;
+  position: relative; z-index: 10; box-shadow: 0 6px 20px rgba(0,0,0,0.25); border-bottom: 5px solid var(--accent);
 }
 .header-signboard {
   display: inline-block; background: rgba(0,0,0,0.3); border: 2px dashed var(--accent);
-  padding: 6px 16px; border-radius: 20px; color: var(--accent);
-  margin-bottom: 12px; font-weight: bold; letter-spacing: 1px;
+  padding: 6px 16px; border-radius: 20px; color: var(--accent); margin-bottom: 10px; font-weight: bold;
 }
-.header h1 { letter-spacing: 1px; margin-bottom: 6px; font-weight: 800; }
-
 .theme-switcher-corner {
-  position: absolute; top: 15px; right: 20px;
-  display: flex; gap: 8px; align-items: center;
-  background: rgba(0, 0, 0, 0.45); padding: 8px 12px;
-  border-radius: 18px; border: 1px solid rgba(255,255,255,0.25); z-index: 20;
+  position: absolute; top: 15px; right: 20px; display: flex; gap: 8px; align-items: center;
+  background: rgba(0, 0, 0, 0.45); padding: 8px 12px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.25); z-index: 20;
 }
-.theme-btn {
-  border: none; padding: 6px 12px; border-radius: 10px; font-weight: bold;
-  cursor: pointer; transition: all 0.2s; color: #fff; background: rgba(255,255,255,0.15);
-}
-.theme-btn:hover { background: rgba(255,255,255,0.35); }
-.theme-btn.active { background: var(--accent); color: #fff; box-shadow: 0 0 10px var(--accent); }
+.theme-btn { border: none; padding: 6px 12px; border-radius: 10px; font-weight: bold; cursor: pointer; color: #fff; background: rgba(255,255,255,0.15); }
+.theme-btn.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 
 .container { max-width: 960px; margin: 0 auto; padding: 35px 20px 70px; position: relative; z-index: 10; }
 .card {
-  background: var(--card-bg); border-radius: 14px; padding: 30px 32px;
-  margin-bottom: 24px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); border: 2px solid var(--border-color);
-  transition: background 0.4s ease, border-color 0.4s ease;
+  background: var(--card-bg); border-radius: 14px; padding: 30px; margin-bottom: 24px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12); border: 2px solid var(--border-color);
 }
 .card h2 { color: var(--primary); border-bottom: 2px solid var(--accent-light); padding-bottom: 10px; margin-bottom: 20px; }
 
@@ -202,96 +158,83 @@ body::after {
 .modes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 24px; }
 .mode-card {
   background: var(--card-bg); border-radius: 16px; padding: 28px; border: 2px solid var(--border-color);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between;
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.4s ease;
+  display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s;
 }
-.mode-card:hover { transform: translateY(-5px); box-shadow: 0 10px 28px rgba(0,0,0,0.2); border-color: var(--primary); }
+.mode-card:hover { transform: translateY(-5px); border-color: var(--primary); }
 .mode-card h3 { color: var(--primary); margin-bottom: 10px; }
 .mode-card p { color: var(--text-muted); margin-bottom: 20px; }
-.mode-control { margin-bottom: 18px; }
-.mode-control select {
-  width: 100%; padding: 12px 14px; border: 2px solid var(--border-color); border-radius: 10px; background: var(--card-bg); color: var(--text-main);
-}
-.blessing-banner {
-  background: var(--accent-light); border: 2px dashed var(--accent); border-radius: 14px;
-  padding: 20px 24px; text-align: center; color: var(--text-main); margin-bottom: 24px;
-}
-.btn-start {
-  background: var(--primary); color: #fff; border: none; width: 100%; padding: 14px;
-  border-radius: 10px; font-weight: bold; cursor: pointer; transition: opacity 0.2s;
-}
-.btn-start:hover { opacity: 0.9; }
-.btn-start.accent { background: var(--accent); color: #fff; }
+.mode-control select { width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 10px; background: var(--card-bg); color: var(--text-main); }
+.blessing-banner { background: var(--accent-light); border: 2px dashed var(--accent); border-radius: 14px; padding: 20px; text-align: center; margin-bottom: 24px; }
+.btn-start { background: var(--primary); color: #fff; border: none; width: 100%; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+.btn-start.accent { background: var(--accent); }
 
-.sticky-bar{
+/* 作答區與星號疑難彙整懸浮窗 (修正五) */
+.sticky-bar {
   position: sticky; top: 0; z-index: 200; background: var(--card-bg);
-  color: var(--text-main); display: flex; align-items: center; justify-content: space-between; padding: 16px 32px;
+  display: flex; align-items: center; justify-content: space-between; padding: 16px 32px;
   border: 2px solid var(--border-color); border-radius: 10px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); margin-bottom: 24px;
 }
-.timer-label{color: var(--text-muted);}
-#timer{font-weight: 700; color: var(--primary);}
-#timer.warn{color: var(--accent);}
-#timer.danger{color: #ff3838;}
+.star-panel {
+  background: var(--accent-light); border: 2px solid var(--accent); padding: 8px 16px; border-radius: 10px;
+  font-size: 0.95rem; display: flex; align-items: center; gap: 8px; font-weight: bold;
+}
+.star-btn { background: none; border: none; font-size: 24px; cursor: pointer; transition: transform 0.2s; }
+.star-btn.starred { transform: scale(1.2); }
 
-.form-group label{display: block; color: var(--text-muted); margin-bottom: 8px;}
-.form-group input{width: 100%; padding: 14px 18px; border: 2px solid var(--border-color); border-radius: 10px; background: var(--card-bg); color: var(--text-main);}
+.q-wrap { background: var(--card-bg); border: 2px solid var(--border-color); border-top: none; padding: 28px; position: relative; }
+.q-title { margin-bottom: 18px; position: relative; padding-right: 40px; }
+.q-star-badge { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 28px; cursor: pointer; }
 
-.sec-header{background: var(--primary); color: #fff; border-radius: 12px 12px 0 0; padding: 16px 26px; font-weight: 700;}
-.sec-desc{background: var(--accent-light); padding: 14px 26px; color: var(--text-main); border: 2px solid var(--border-color); border-top: none;}
-
-.q-wrap{background: var(--card-bg); border: 2px solid var(--border-color); border-top: none; padding: 28px 32px;}
-.q-title{margin-bottom: 18px; color: var(--text-main);}
-.q-num{display: inline-block; background: var(--primary); color: #fff; border-radius: 8px; font-weight: 700; padding: 4px 10px; margin-right: 10px;}
-.options{display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;}
+.q-num { display: inline-block; background: var(--primary); color: #fff; border-radius: 8px; padding: 4px 10px; margin-right: 10px; font-weight: bold; }
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
 @media(max-width:680px){.options{grid-template-columns: 1fr;}}
-.opt{
-  display: flex; align-items: flex-start; gap: 12px; padding: 14px 18px;
-  border: 2px solid var(--border-color); border-radius: 10px; cursor: pointer; background: var(--bg-color); color: var(--text-main);
-}
-.opt:hover{border-color: var(--primary);}
-.opt.selected{background: var(--accent-light); border-color: var(--accent); font-weight: 500;}
-.q-status{float: right; color: var(--text-muted);}
-.q-status.done{color: var(--primary); font-weight: bold;}
+.opt { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 2px solid var(--border-color); border-radius: 10px; cursor: pointer; background: var(--bg-color); }
+.opt.selected { background: var(--accent-light); border-color: var(--accent); font-weight: bold; }
 
-.submit-area{text-align: center; margin-top: 30px;}
-.btn-submit{
-  background: var(--primary); color: #fff; border: none; padding: 16px 60px;
-  border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-}
-.btn-submit:hover{opacity: 0.9;}
+.btn-submit { background: var(--primary); color: #fff; border: none; padding: 16px 60px; border-radius: 12px; cursor: pointer; font-weight: bold; }
+.btn-back-corner { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-/* 返回按鈕與右下角浮動返回功能（修正三） */
-.btn-back-corner {
-  background: var(--accent); color: #fff; border: none; padding: 10px 20px;
-  border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  transition: opacity 0.2s;
+/* ── 第 3 層：高質感彈跳視窗與錯題 AI 檢討室 (修正一與三) ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 999;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+  padding: 20px; overflow-y: auto;
 }
-.btn-back-corner:hover { opacity: 0.85; }
+.modal-overlay.show { display: flex; }
+.modal-content {
+  background: var(--card-bg); border: 3px solid var(--primary); border-radius: 20px;
+  width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 35px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4); text-align: left;
+}
+.score-banner {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff;
+  padding: 20px; border-radius: 14px; text-align: center; margin-bottom: 25px;
+}
+.score-big { font-size: 3.2rem; font-weight: 900; color: var(--accent); }
 
-/* ── 第 3 層：評量報告儀表板與圖表區 ── */
-.report-card { text-align: center; }
-.score-big { font-weight: 900; color: var(--accent); margin: 15px 0; }
-.chart-container { max-width: 520px; margin: 25px auto; position: relative; }
-.ai-coach-box {
-  background: var(--accent-light); border: 2px dashed var(--primary); border-radius: 12px;
-  padding: 20px; text-align: left; margin-top: 25px; color: var(--text-main);
-}
+/* 高質感資訊視覺化長條圖區塊 */
+.chart-box-modern { background: var(--bg-color); padding: 20px; border-radius: 12px; border: 2px solid var(--border-color); margin-bottom: 25px; }
+
+.ai-coach-box { background: var(--accent-light); border: 2px dashed var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 25px; }
 .ai-coach-title { font-weight: bold; color: var(--primary); margin-bottom: 8px; font-size: 1.2rem; }
+
+/* 錯題檢討卡片 */
+.wrong-question-card { background: var(--bg-color); border: 2px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+.btn-reveal { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+.reveal-content { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color); }
+.reveal-content.show { display: block; }
+
 .loading-box { text-align: center; padding: 50px; color: var(--text-muted); }
 </style>
 </head>
 <body>
 
 <div class="gba-grid-bg" aria-hidden="true"></div>
-<div class="wave-bg-container" aria-hidden="true">
-  <div class="wave"></div>
-  <div class="wave"></div>
-</div>
+<div class="wave-bg-container" aria-hidden="true"><div class="wave"></div><div class="wave"></div></div>
 
 <div id="intro-overlay">
   <div class="gba-boot-screen">
-    <div class="rocket-left">🚀</div>
-    <div class="rocket-right">🚀</div>
+    <div class="rocket-left">🚀</div><div class="rocket-right">🚀</div>
     <div class="gba-nintendo-txt">▶ GBA 復古街機系統 ◀</div>
     <div class="intro-logo">國小數學教檢練功房</div>
     <div class="intro-sub">系統載入中... 準備就緒！</div>
@@ -313,36 +256,19 @@ body::after {
 
 <div class="container">
 
-  <!-- ==================== 第 1 層：入口與模式選擇 ==================== -->
+  <!-- ==================== 第 1 層：選單 ==================== -->
   <div id="view-mode-select" class="view-section active">
-    <div class="blessing-banner">
-      ✨ <strong>展望明年6月：</strong> 教檢一定過！
-    </div>
+    <div class="blessing-banner">✨ <strong>展望明年6月：</strong> 教檢一定過！</div>
     <div class="modes-grid">
-      <!-- 模式一：依年度（選擇年度抓取該年度所有內容，修正四） -->
       <div class="mode-card">
+        <div><h3>📅 歷屆年度精準刷題</h3><p>選擇特定年度教檢試題，完整體驗實戰臨場感。</p></div>
         <div>
-          <h3>📅 歷屆年度精準刷題</h3>
-          <p>選擇特定年度教檢試題（包含普通數學與教材教法全方位考題）。</p>
-        </div>
-        <div>
-          <div class="mode-control">
-            <select id="yearSelect">
-              <option value="115">115 年度</option>
-              <option value="114">114 年度</option>
-              <option value="113">113 年度</option>
-            </select>
-          </div>
+          <div class="mode-control"><select id="yearSelect"><option value="115">115 年度</option><option value="114">114 年度</option><option value="113">113 年度</option></select></div>
           <button class="btn-start" onclick="initQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
         </div>
       </div>
-
-      <!-- 模式二：依單元（支援大主項目二選一與細分子項目，修正五） -->
       <div class="mode-card">
-        <div>
-          <h3>📚 單元主題式突破</h3>
-          <p>可選擇大類別通關，或針對弱勢子項目集中特訓。</p>
-        </div>
+        <div><h3>📚 單元主題式突破</h3><p>可選擇大類別通關，或針對弱勢子項目集中特訓。</p></div>
         <div>
           <div class="mode-control">
             <select id="unitSelect">
@@ -351,49 +277,31 @@ body::after {
                 <option value="教材教法">🍎 教材教法（全範圍）</option>
               </optgroup>
               <optgroup label="📐 普通數學子項目">
-                <option value="n數與量">n數與量</option>
-                <option value="s空間與形狀">s空間與形狀</option>
-                <option value="g坐標幾何">g坐標幾何</option>
-                <option value="r關係">r關係</option>
-                <option value="a代數">a代數</option>
-                <option value="f函數">f函數</option>
-                <option value="d資料與不確定性">d資料與不確定性</option>
+                <option value="n數與量">n數與量</option><option value="s空間與形狀">s空間與形狀</option><option value="g坐標幾何">g坐標幾何</option><option value="r關係">r關係</option><option value="a代數">a代數</option><option value="f函數">f函數</option><option value="d資料與不確定性">d資料與不確定性</option>
               </optgroup>
               <optgroup label="🍎 教材教法子項目">
-                <option value="數學結構與內容">數學結構與內容</option>
-                <option value="認知與迷思">認知與迷思</option>
-                <option value="教學與評量">教學與評量</option>
+                <option value="數學結構與內容">數學結構與內容</option><option value="認知與迷思">認知與迷思</option><option value="教學與評量">教學與評量</option>
               </optgroup>
             </select>
           </div>
           <button class="btn-start" onclick="initQuiz('unit', document.getElementById('unitSelect').value)">開始單元特訓</button>
         </div>
       </div>
-
-      <!-- 模式三：隨機 -->
       <div class="mode-card">
+        <div><h3>⚡ 隨機閃電馬拉松</h3><p>隨機抽取指定題數，快速檢驗綜合反應能力。</p></div>
         <div>
-          <h3>⚡ 隨機閃電馬拉松</h3>
-          <p>隨機抽取指定題數，快速檢驗綜合反應能力。</p>
-        </div>
-        <div>
-          <div class="mode-control">
-            <select id="limitSelect">
-              <option value="5">5 題（閃電快測）</option>
-              <option value="10" selected>10 題（標準特訓）</option>
-            </select>
-          </div>
+          <div class="mode-control"><select id="limitSelect"><option value="5">5 題（閃電快測）</option><option value="10" selected>10 題（標準特訓）</option></select></div>
           <button class="btn-start accent" onclick="initQuiz('random', document.getElementById('limitSelect').value)">開始隨機特訓</button>
         </div>
       </div>
     </div>
   </div>
 
-
-  <!-- ==================== 第 2 層：動態作答與計時引擎 ==================== -->
+  <!-- ==================== 第 2 層：作答引擎 ==================== -->
   <div id="view-quiz" class="view-section">
     <div class="sticky-bar">
       <div class="timer-label">⏱ 剩餘時間: <span id="timer">80:00</span></div>
+      <div class="star-panel">⭐ 疑難星號題：<span id="starred-count">0</span> 題</div>
       <div style="display:flex; align-items:center; gap:15px;">
         <div class="answered-label">已作答 <span id="ans-count">0</span> / <span id="total-count">0</span> 題</div>
         <button class="btn-back-corner" onclick="backToHome()">返回首頁</button>
@@ -402,73 +310,67 @@ body::after {
 
     <div class="card">
       <h2>📋 應試基本資料</h2>
-      <div class="form-group">
-        <label for="sName">考生姓名</label>
-        <input type="text" id="sName" placeholder="請輸入您的姓名">
-      </div>
+      <div class="form-group"><label for="sName">考生姓名</label><input type="text" id="sName" placeholder="請輸入您的姓名"></div>
     </div>
 
-    <div id="quiz-container">
-      <div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div>
-    </div>
+    <div id="quiz-container"><div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div></div>
 
-    <div class="submit-area" id="submit-area-wrap" style="display:none;">
+    <div class="submit-area" id="submit-area-wrap" style="display:none; text-align:center; margin-top:30px;">
       <button class="btn-submit" onclick="submitQuiz()">交卷看成績與分析報告</button>
-    </div>
-  </div>
-
-
-  <!-- ==================== 第 3 層：評量報告儀表板與 AI 講評（修正一與六） ==================== -->
-  <div id="view-report" class="view-section">
-    <div class="card report-card">
-      <h2>📊 學習成效分析報告</h2>
-      <p id="report-name-info" style="color:var(--text-muted);"></p>
-      <div class="score-big" id="report-score">0 分</div>
-      <p id="report-summary" style="margin-bottom:20px;"></p>
-      
-      <!-- 動態圖表容器：依模式切換顯示長條圖或雷達圖 -->
-      <div class="chart-container" id="chart-wrapper-1">
-        <canvas id="primaryChart"></canvas>
-      </div>
-      <div class="chart-container" id="chart-wrapper-2" style="display:none;">
-        <canvas id="secondaryChart"></canvas>
-      </div>
-
-      <!-- AI 擬真導師講評與建議分析（修正六） -->
-      <div class="ai-coach-box">
-        <div class="ai-coach-title">🤖 AI 智慧教檢導師診斷講評</div>
-        <div id="ai-coach-content">正在運算學習成效與弱點分析...</div>
-      </div>
-
-      <div style="margin-top:25px; color:var(--text-muted); background:var(--accent-light); border-radius:10px; padding:15px;" id="cloud-sync-status">
-        📡 正在同步成績至 Google Sheets...
-      </div>
-
-      <button class="btn-back-corner" style="margin-top:25px;" onclick="backToHome()">返回練功房首頁</button>
     </div>
   </div>
 
 </div>
 
+<!-- ==================== 第 3 層：彈跳式視窗與錯題 AI 檢討室 (修正三) ==================== -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal-content">
+    <div class="score-banner">
+      <h2>📊 學習成效分析報告</h2>
+      <p id="report-name-info" style="font-size:1rem; opacity:0.9; margin-top:5px;"></p>
+      <div class="score-big" id="report-score">0 分</div>
+      <p id="report-summary"></p>
+    </div>
+
+    <!-- 高質感視覺化長條圖分析 (修正一) -->
+    <div class="chart-box-modern">
+      <h3 style="color:var(--primary); margin-bottom:12px; font-size:1.1rem;">📈 核心領域得分表現</h3>
+      <div class="chart-container" style="position: relative; height:220px;"><canvas id="modernBarChart"></canvas></div>
+    </div>
+
+    <!-- AI 智慧教檢導師診斷講評 (修正二) -->
+    <div class="ai-coach-box">
+      <div class="ai-coach-title">🤖 AI 智慧教檢導師診斷講評</div>
+      <div id="ai-coach-content">正在運算學習成效...</div>
+    </div>
+
+    <!-- 錯題 AI 檢討室 (修正三) -->
+    <div id="wrong-questions-section" style="margin-bottom:25px; display:none;">
+      <h3 style="color:var(--accent); margin-bottom:12px; font-size:1.1rem;">❌ 錯題精準特訓與 AI 解析室</h3>
+      <div id="wrong-questions-list"></div>
+    </div>
+
+    <div style="text-align:center;">
+      <button class="btn-submit" onclick="backToHomeFromModal()">關閉報告並返回首頁</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// ⚠️ 【請確保下方網址為你部署好的 Google Apps Script 網址】
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxRgkjMYYuZntOeeQaTgzU_E9K5gc5KznLniaGgfyre5yeZK7vH_GKbA0t1RyW2O6R4OQ/exec";
 
 let questionsData = [];
 let userAnswers = {};
+let starredQuestions = {}; // 記錄星號題索引 (修正五)
 let timeLeft = 80 * 60;
 let timerInterval = null;
 let currentMode = '';
 let currentVal = '';
-let primaryChartInstance = null;
-let secondaryChartInstance = null;
+let barChartInstance = null;
 
 function setTheme(themeName) {
-  if (themeName === 'default') {
-    document.documentElement.removeAttribute('data-theme');
-  } else {
-    document.documentElement.setAttribute('data-theme', themeName);
-  }
+  if (themeName === 'default') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', themeName);
   document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
   document.getElementById(`btn-${themeName}`).classList.add('active');
 }
@@ -476,6 +378,8 @@ function setTheme(themeName) {
 function initQuiz(mode, val) {
   currentMode = mode;
   currentVal = val;
+  userAnswers = {};
+  starredQuestions = {};
   
   document.getElementById('view-mode-select').classList.remove('active');
   document.getElementById('view-quiz').classList.add('active');
@@ -483,15 +387,13 @@ function initQuiz(mode, val) {
   document.getElementById('submit-area-wrap').style.display = 'none';
 
   let targetUrl = `${GAS_API_URL}?mode=${mode}&val=${encodeURIComponent(val)}`;
-  if(mode === 'random') {
-    targetUrl = `${GAS_API_URL}?mode=random&limit=${val}`;
-  }
+  if(mode === 'random') targetUrl = `${GAS_API_URL}?mode=random&limit=${val}`;
 
   fetch(targetUrl)
     .then(res => res.json())
     .then(data => {
       if (!data || data.length === 0) {
-        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 的 domain / unit 欄位是否有對應填寫。</div>';
+        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 的欄位是否有對應填寫。</div>';
         return;
       }
       questionsData = data;
@@ -502,7 +404,7 @@ function initQuiz(mode, val) {
     })
     .catch(err => {
       console.error('載入失敗:', err);
-      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查網路連線或 GAS 網址。</div>';
+      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查 GAS 網址。</div>';
     });
 }
 
@@ -515,16 +417,15 @@ function renderQuiz(questions) {
   questions.forEach((q, index) => {
     const qNum = index + 1;
     html += `
-      <div class="q-wrap">
+      <div class="q-wrap" id="q_box_${index}">
+        <button type="button" class="q-star-badge" id="star_btn_${index}" onclick="toggleStar(${index})" title="標記疑難題">☆</button>
         <div class="q-title">
           <span class="q-num">${qNum}</span>
           <span class="q-status" id="s${qNum}">未作答</span>
           ${q.stem || '（無題幹）'}
         </div>
     `;
-    if (q.svg_code) {
-      html += `<div style="text-align:center; margin:16px 0;">${q.svg_code}</div>`;
-    }
+    if (q.svg_code) html += `<div style="text-align:center; margin:16px 0;">${q.svg_code}</div>`;
     html += `<div class="options" data-qindex="${index}">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
       const optVal = q['opt_' + optKey.toLowerCase()];
@@ -541,6 +442,21 @@ function renderQuiz(questions) {
   });
 
   document.getElementById('quiz-container').innerHTML = html;
+}
+
+// 星號標記功能 (修正五)
+function toggleStar(index) {
+  const btn = document.getElementById(`star_btn_${index}`);
+  if (starredQuestions[index]) {
+    delete starredQuestions[index];
+    btn.textContent = "☆";
+    btn.classList.remove('starred');
+  } else {
+    starredQuestions[index] = true;
+    btn.textContent = "⭐";
+    btn.classList.add('starred');
+  }
+  document.getElementById('starred-count').textContent = Object.keys(starredQuestions).length;
 }
 
 function getModeDisplayName(mode, val) {
@@ -576,7 +492,7 @@ function startTimer() {
   }, 1000);
 }
 
-// ── 第 3 層：交卷計分、圖表動態生成與 AI 講評（修正一與六） ──
+// 交卷與彈跳視窗儀表板生成 (修正一與三)
 function submitQuiz(isAuto = false) {
   const name = document.getElementById('sName').value.trim();
   if (!isAuto && !name) { alert('請輸入您的姓名再交卷！'); document.getElementById('sName').focus(); return; }
@@ -585,147 +501,128 @@ function submitQuiz(isAuto = false) {
   let correctCount = 0;
   const totalQ = questionsData.length;
   const pointsPerQ = 100 / totalQ;
-  let unitStats = {}; 
   let domainStats = { "普通數學": { total: 0, correct: 0 }, "教材教法": { total: 0, correct: 0 } };
+  let wrongList = [];
 
   questionsData.forEach((q, index) => {
     const uAns = userAnswers[index];
-    const unit = q.unit || '綜合單元';
-    const domain = q.domain || (unit.includes('數學') ? '普通數學' : '教材教法');
+    const domain = q.domain || '普通數學';
 
-    if(!unitStats[unit]) { unitStats[unit] = { total: 0, correct: 0 }; }
-    unitStats[unit].total++;
-
-    if(!domainStats[domain]) { domainStats[domain] = { total: 0, correct: 0 }; }
+    if(!domainStats[domain]) domainStats[domain] = { total: 0, correct: 0 };
     domainStats[domain].total++;
 
     if (uAns && uAns === q.answer) {
       correctCount++;
-      unitStats[unit].correct++;
       domainStats[domain].correct++;
+    } else {
+      wrongList.push({ q: q, userAns: uAns || '未作答', index: index + 1 });
     }
   });
 
   const finalScore = Math.round((correctCount * pointsPerQ) * 100) / 100;
 
-  document.getElementById('view-quiz').classList.remove('active');
-  document.getElementById('view-report').classList.add('active');
-
+  // 填入彈跳視窗內容
   document.getElementById('report-name-info').textContent = `考生：${name} | 模式：${getModeDisplayName(currentMode, currentVal)}`;
   document.getElementById('report-score').textContent = `${finalScore} 分`;
   document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} / ${totalQ} 題，答對 ${correctCount} 題。`;
 
-  // 渲染圖表與 AI 講評
-  renderChartsAndCoach(unitStats, domainStats, finalScore);
+  // 渲染現代化資訊視覺長條圖 (修正一)
+  renderModernBarChart(domainStats);
 
-  const payload = {
-    studentName: name || '匿名考生',
-    studentId: '無',
-    mode: `${currentMode}_${currentVal}`,
-    score: finalScore,
-    totalCorrect: correctCount,
-    details: userAnswers
-  };
+  // AI 導師診斷
+  document.getElementById('ai-coach-content').innerHTML = finalScore >= 80 
+    ? `🎯 <strong>【卓越表現】</strong> 總分 ${scoreText = finalScore} 分！觀念相當扎實，能完美應對教檢各種題型，請保持節奏！`
+    : finalScore >= 60
+    ? `📈 <strong>【穩健過關】</strong> 總分 ${finalScore} 分！已達合格門檻，建議針對下方錯題進行深度檢討，補足失分盲點。`
+    : `⚠️ <strong>【尚需努力】</strong> 總分 ${finalScore} 分。別氣搖！請透過下方的錯題解析與 AI 建議，重新釐清核心概念。`;
 
+  // 渲染錯題 AI 檢討室 (修正三)
+  renderWrongQuestions(wrongList);
+
+  // 顯示彈跳視窗
+  document.getElementById('reportModal').classList.add('show');
+
+  // 同步 Google Sheet
   fetch(GAS_API_URL, {
     method: 'POST',
-    body: JSON.stringify(payload)
-  })
-  .then(res => res.json())
-  .then(() => {
-    document.getElementById('cloud-sync-status').textContent = '✅ 成績已成功同步至 Google Sheets 雲端資料庫！';
-  })
-  .catch(() => {
-    document.getElementById('cloud-sync-status').textContent = '⚠️ 雲端同步失敗（離線計算模式），但不影響成績呈現。';
+    body: JSON.stringify({ studentName: name || '匿名考生', studentId: '無', mode: `${currentMode}_${currentVal}`, score: finalScore, totalCorrect: correctCount, details: userAnswers })
+  }).catch(() => {});
+}
+
+// 高質感資訊視覺化圖表設計 (修正一)
+function renderModernBarChart(domainStats) {
+  const ctx = document.getElementById('modernBarChart').getContext('2d');
+  if(barChartInstance) barChartInstance.destroy();
+
+  const labels = Object.keys(domainStats);
+  const rates = labels.map(d => domainStats[d].total > 0 ? Math.round((domainStats[d].correct / domainStats[d].total) * 100) : 0);
+
+  barChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '答對率 (%)',
+        data: rates,
+        backgroundColor: ['#4ecca3', '#ff6b6b'],
+        borderRadius: 8,
+        barThickness: 45
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, max: 100, ticks: { stepSize: 25 } }
+      }
+    }
   });
 }
 
-function renderChartsAndCoach(unitStats, domainStats, score) {
-  const ctx1 = document.getElementById('primaryChart').getContext('2d');
-  const ctx2 = document.getElementById('secondaryChart').getContext('2d');
-
-  if(primaryChartInstance) primaryChartInstance.destroy();
-  if(secondaryChartInstance) secondaryChartInstance.destroy();
-
-  const wrapper2 = document.getElementById('chart-wrapper-2');
-  let aiText = "";
-
-  if (currentMode === 'year' || currentMode === 'random') {
-    // 年度或隨機模式：顯示雙圖表（大類長條圖 + 子項目雷達圖）
-    wrapper2.style.display = 'block';
-
-    const domLabels = Object.keys(domainStats);
-    const domRates = domLabels.map(d => domainStats[d].total > 0 ? Math.round((domainStats[d].correct / domainStats[d].total) * 100) : 0);
-
-    primaryChartInstance = new Chart(ctx1, {
-      type: 'bar',
-      data: {
-        labels: domLabels,
-        datasets: [{
-          label: '三大領域答對率 (%)',
-          data: domRates,
-          backgroundColor: ['#4ecca3', '#ff6b6b']
-        }]
-      },
-      options: { scales: { y: { beginAtZero: true, max: 100 } } }
-    });
-
-    const unitLabels = Object.keys(unitStats);
-    const unitRates = unitLabels.map(u => Math.round((unitStats[u].correct / unitStats[u].total) * 100));
-
-    secondaryChartInstance = new Chart(ctx2, {
-      type: 'radar',
-      data: {
-        labels: unitLabels,
-        datasets: [{
-          label: '各子項目細部表現 (%)',
-          data: unitRates,
-          backgroundColor: 'rgba(78, 204, 163, 0.25)',
-          borderColor: '#4ecca3',
-          borderWidth: 3,
-          pointBackgroundColor: '#ff6b6b'
-        }]
-      },
-      options: { scales: { r: { beginAtZero: true, max: 100 } } }
-    });
-
-    aiText = score >= 80 
-      ? `🎯 <strong>【卓越表現】</strong> 你的實戰總成績達到 ${score} 分！各領域掌握度相當均衡，尤其在普通數學與教材教法的綜合應用上展現出扎實實力。距離明年 6 月教檢上岸已經穩操勝券，建議考前多做歷屆試題維持手感即可！`
-      : score >= 60
-      ? `📈 <strong>【穩健過關】</strong> 測驗成績 ${score} 分！已達基本及格標準。從雷達圖可看出部分子項目（如幾何或認知迷思）仍有失分，建議針對失分較多的子項目進行「單元特訓」，強化觀念連結。`
-      : `⚠️ <strong>【急需加強】</strong> 目前成績為 ${score} 分。別氣餒！這正是找出盲點的最佳時機。建議優先利用單元特訓模式，逐一攻克「普通數學」與「教材教法」的基礎概念，穩扎穩打一定能大幅進步！`;
-
-  } else {
-    // 單元模式：單一深度雷達圖 + 圖表說明 + AI 講評
-    wrapper2.style.display = 'none';
-
-    const labels = Object.keys(unitStats);
-    const dataRates = labels.map(u => Math.round((unitStats[u].correct / unitStats[u].total) * 100));
-
-    primaryChartInstance = new Chart(ctx1, {
-      type: 'radar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: '該單元核心掌握度 (%)',
-          data: dataRates,
-          backgroundColor: 'rgba(255, 107, 107, 0.25)',
-          borderColor: '#ff6b6b',
-          borderWidth: 3,
-          pointBackgroundColor: '#4ecca3'
-        }]
-      },
-      options: { scales: { r: { beginAtZero: true, max: 100 } } }
-    });
-
-    aiText = `📚 <strong>【單元特訓解析】</strong> 本次針對「${currentVal}」進行專項突破。你的得分率為 ${score} 分。單元特訓旨在精準抓出盲點，若正確率未達 80%，建議回頭翻閱教師手冊與教材教法核心概念，釐清學童常見迷思！`;
+// 錯題檢討室動態生成 (修正三)
+function renderWrongQuestions(wrongList) {
+  const section = document.getElementById('wrong-questions-section');
+  const listEl = document.getElementById('wrong-questions-list');
+  
+  if (wrongList.length === 0) {
+    section.style.display = 'none';
+    return;
   }
 
-  document.getElementById('ai-coach-content').innerHTML = aiText;
+  section.style.display = 'block';
+  let html = '';
+  wrongList.forEach(item => {
+    html += `
+      <div class="wrong-question-card">
+        <p><strong>第 ${item.index} 題：</strong> ${item.q.stem || ''}</p>
+        <p style="margin-top:6px; color:var(--accent);">您的選擇：(${item.userAns})</p>
+        <button class="btn-reveal" onclick="toggleReveal(this)">💡 顯示 AI 深度檢討與正確解答</button>
+        <div class="reveal-content">
+          <p style="color:var(--primary); font-weight:bold;">✅ 正確解答：(${item.q.answer})</p>
+          <p style="margin-top:4px; font-size:0.95rem; opacity:0.9;">🤖 <strong>AI 導師解析：</strong> 本題考查「${item.q.unit || item.q.domain}」核心概念。您選擇 (${item.userAns}) 可能是對公式定義或題意條件產生了混淆，正確應選 (${item.q.answer})。建議重新複習相關單元以鞏固基礎！</p>
+        </div>
+      </div>
+    `;
+  });
+  listEl.innerHTML = html;
+}
+
+function toggleReveal(btn) {
+  const content = btn.nextElementSibling;
+  content.classList.toggle('show');
+  btn.textContent = content.classList.contains('show') ? "折疊檢討內容" : "💡 顯示 AI 深度檢討與正確解答";
+}
+
+function backToHomeFromModal() {
+  document.getElementById('reportModal').classList.remove('show');
+  backToHome();
 }
 
 function backToHome() {
   userAnswers = {};
+  starredQuestions = {};
+  document.getElementById('reportModal').classList.remove('show');
+  document.getElementById('view-quiz').classList.remove('active');
   document.getElementById('view-report').classList.remove('active');
   document.getElementById('view-mode-select').classList.add('active');
 }
