@@ -351,24 +351,24 @@ body::after {
           <p>針對弱勢單元加強，同性質考題集中特訓。</p>
         </div>
         <div>
-          <div class="mode-control">
-            <select id="unitSelect">
-              <optgroup label="📐 普通數學類">
-                <option value="普通數學-數與量">普通數學 - n數與量</option>
-                <option value="普通數學-代數與函數">普通數學 - s空間與形狀</option>
-                <option value="普通數學-幾何與測量">普通數學 - g坐標幾何</option>
-                <option value="普通數學-統計與機率">普通數學 - r關係</option>
-                <option value="普通數學-邏輯推理">普通數學 - a代數</option>
-                <option value="普通數學-邏輯推理">普通數學 - f函數</option>
-                <option value="普通數學-微積分基礎">普通數學 - d資料與不確定性</option>
-              </optgroup>
-              <optgroup label="🍎 教材教法類">
-                <option value="教材教法-數與計算教材">教材教法 - 數學結構與內容</option>
-                <option value="教材教法-量與實測教材">教材教法 - 認知與迷思</option>
-                <option value="教材教法-空間與形體教材">教材教法 - 教學與評量</option>
-              </optgroup>
-            </select>
-          </div>
+<div class="mode-control">
+  <select id="unitSelect">
+    <optgroup label="📐 普通數學類">
+      <option value="n數與量">n數與量</option>
+      <option value="s空間與形狀">s空間與形狀</option>
+      <option value="g坐標幾何">g坐標幾何</option>
+      <option value="r關係">r關係</option>
+      <option value="a代數">a代數</option>
+      <option value="f函數">f函數</option>
+      <option value="d資料與不確定性">d資料與不確定性</option>
+    </optgroup>
+    <optgroup label="🍎 教材教法類">
+      <option value="數學結構與內容">數學結構與內容</option>
+      <option value="認知與迷思">認知與迷思</option>
+      <option value="教學與評量">教學與評量</option>
+    </optgroup>
+  </select>
+</div>
           <button class="btn-start" onclick="initQuiz('unit', document.getElementById('unitSelect').value)">開始單元特訓</button>
         </div>
       </div>
