@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>115年度教師檢定數學科複習 - 練功房</title>
+<title>115年度教師檢定數學科複習 - 智慧練功房</title>
+<!-- 引入 Chart.js 用於第 3 層的雷達圖分析 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 /* ── 宮崎駿暖色系與微動畫背景設定 ── */
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -18,13 +20,22 @@
   --text-muted: #7c736e;
   --border-color: #e6ded5;
 }
+
 body {
   font-family:'Microsoft JhengHei','微軟正黑體',sans-serif;
-  background: var(--bg-color); color: var(--text-main);
-  line-height:1.8; font-size:15px; position: relative; min-height: 100vh; overflow-x: hidden;
+  background: var(--bg-color);
+  color: var(--text-main);
+  line-height:1.8;
+  font-size:15px;
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
+
+/* ── 微幅移動的大景動畫背景 (宮崎駿風：微風吹拂的樹與雲) ── */
 .ambient-bg {
-  position: fixed; bottom: 0; left: 0; width: 100%; height: 220px; z-index: 0; pointer-events: none; opacity: 0.25; overflow: hidden;
+  position: fixed; bottom: 0; left: 0; width: 100%; height: 220px;
+  z-index: 0; pointer-events: none; opacity: 0.25; overflow: hidden;
 }
 .ambient-mountain {
   position: absolute; bottom: 0; left: 0; width: 200%; height: 140px;
@@ -32,6 +43,7 @@ body {
   animation: mountainSway 45s linear infinite;
 }
 @keyframes mountainSway { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
 .ambient-trees {
   position: absolute; bottom: 0; left: 0; width: 200%; height: 90px;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 90'%3E%3Cpath fill='%23588157' d='M0,50 Q30,10 60,50 Q90,20 120,50 Q150,5 180,50 Q210,15 240,50 Q270,10 300,50 Q330,20 360,50 Q390,5 420,50 Q450,15 480,50 Q510,10 540,50 Q570,20 600,50 Q630,5 660,50 Q690,15 720,50 Q750,10 780,50 Q810,20 840,50 Q870,5 900,50 Q930,15 960,50 Q990,10 1020,50 Q1050,20 1080,50 Q1110,5 1140,50 Q1170,15 1200,50 L1200,90 L0,90 Z'/%3E%3C/svg%3E") repeat-x;
@@ -39,51 +51,101 @@ body {
 }
 @keyframes treeSway { 0% { transform: translateX(0) skewX(0deg); } 100% { transform: translateX(-2%) skewX(-1.5deg); } }
 
-.header{ background: linear-gradient(135deg, #5c6f58, #3a4a37); color: #fff; padding: 24px 30px; text-align: center; position: relative; z-index: 10; box-shadow: 0 4px 12px rgba(92,111,88,0.15); }
+/* 通用排版 */
+.header{
+  background: linear-gradient(135deg, #5c6f58, #3a4a37);
+  color: #fff; padding: 24px 30px; text-align: center;
+  position: relative; z-index: 10; box-shadow: 0 4px 12px rgba(92,111,88,0.15);
+}
 .header h1{font-size: 21px; letter-spacing: 1px; margin-bottom: 6px;}
 .header p{font-size: 13.5px; opacity: .9;}
 
+.container{max-width: 880px; margin: 0 auto; padding: 24px 16px 60px; position: relative; z-index: 10;}
+.card{
+  background: var(--card-bg); border-radius: 12px; padding: 24px 28px;
+  margin-bottom: 20px; box-shadow: 0 4px 16px rgba(58,53,50,.04); border: 1px solid var(--border-color);
+}
+.card h2{font-size: 16px; color: var(--primary-dark); border-bottom: 2px solid var(--accent-light); padding-bottom: 8px; margin-bottom: 16px;}
+
+/* 畫面視圖切換控制 */
+.view-section { display: none; }
+.view-section.active { display: block; }
+
+/* ── 第 1 層：練功房選單樣式 ── */
+.modes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; margin-top: 20px; }
+.mode-card {
+  background: var(--card-bg); border-radius: 14px; padding: 24px; border: 1px solid var(--border-color);
+  box-shadow: 0 4px 16px rgba(58,53,50,0.04); display: flex; flex-direction: column; justify-content: space-between;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.mode-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(92,111,88,0.12); border-color: var(--primary); }
+.mode-card h3 { font-size: 18px; color: var(--primary-dark); margin-bottom: 8px; }
+.mode-card p { font-size: 13.5px; color: var(--text-muted); margin-bottom: 16px; }
+.mode-control { margin-bottom: 14px; }
+.mode-control select {
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 14px; background: #fff;
+}
+.blessing-banner {
+  background: var(--accent-light); border: 1px dashed var(--accent); border-radius: 12px;
+  padding: 18px 24px; text-align: center; color: #59392e; font-size: 15px; margin-bottom: 20px;
+}
+.btn-start {
+  background: var(--primary); color: #fff; border: none; width: 100%; padding: 11px;
+  border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s;
+}
+.btn-start:hover { background: var(--primary-dark); }
+.btn-start.accent { background: var(--accent); }
+.btn-start.accent:hover { background: #b85d3c; }
+
+/* ── 第 2 層：作答引擎樣式 ── */
 .sticky-bar{
   position: sticky; top: 0; z-index: 200; background: rgba(252, 248, 242, 0.92); backdrop-filter: blur(8px);
   color: var(--text-main); display: flex; align-items: center; justify-content: space-between; padding: 10px 28px;
-  border-bottom: 1px solid var(--border-color); box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  border-bottom: 1px solid var(--border-color); box-shadow: 0 2px 10px rgba(0,0,0,.04); margin-bottom: 20px;
 }
 .timer-label{font-size: 13px; color: var(--text-muted);}
-#timer{font-size: 20px; font-weight: 700; letter-spacing: 1px; color: var(--primary-dark);}
+#timer{font-size: 20px; font-weight: 700; color: var(--primary-dark);}
 #timer.warn{color: #d97757;}
-#timer.danger{color: #bc4749; animation: pulse 1s infinite;}
-@keyframes pulse { 50%{opacity:.5;} }
+#timer.danger{color: #bc4749;}
 
-.container{max-width: 880px; margin: 0 auto; padding: 24px 16px 60px; position: relative; z-index: 10;}
-.card{ background: var(--card-bg); border-radius: 12px; padding: 24px 28px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(58,53,50,.04); border: 1px solid var(--border-color); }
-.card h2{font-size: 16px; color: var(--primary-dark); border-bottom: 2px solid var(--accent-light); padding-bottom: 8px; margin-bottom: 16px;}
 .form-row{display: flex; gap: 16px; flex-wrap: wrap;}
 .form-group{flex: 1; min-width: 180px;}
 .form-group label{display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 5px;}
-.form-group input{width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 14px; font-family: inherit; outline: none; background: #fff;}
-.instructions{ background: var(--accent-light); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 14px 20px; font-size: 14px; margin-bottom: 22px; color: #59392e; }
+.form-group input{width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 14px; background: #fff;}
+
 .sec-header{background: var(--primary); color: #fff; border-radius: 10px 10px 0 0; padding: 12px 22px; font-size: 15px; font-weight: 700;}
 .sec-desc{background: #f4f1ea; padding: 10px 22px; font-size: 13.5px; color: var(--text-muted); border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);}
-.q-wrap{background: var(--card-bg); border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 22px 26px;}
+
+.q-wrap{background: var(--card-bg); border: 1px solid var(--border-color); border-top: none; padding: 22px 26px;}
 .q-title{margin-bottom: 14px; font-size: 15px; color: var(--text-main);}
 .q-num{display: inline-block; background: var(--primary); color: #fff; border-radius: 6px; font-size: 12px; font-weight: 700; padding: 2px 8px; margin-right: 8px;}
 .options{display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;}
-.opt{ display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; background: #faf8f5; }
+@media(max-width:580px){.options{grid-template-columns: 1fr;}}
+.opt{
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px;
+  border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 14px; background: #faf8f5;
+}
 .opt:hover{background: #f0ebe1; border-color: var(--primary);}
 .opt.selected{background: var(--accent-light); border-color: var(--accent); color: #59392e; font-weight: 500;}
 .q-status{float: right; font-size: 12px; color: #b5a99f;}
 .q-status.done{color: var(--primary); font-weight: bold;}
+
 .submit-area{text-align: center; margin-top: 24px;}
-.btn-submit{ background: var(--primary); color: #fff; border: none; padding: 14px 52px; border-radius: 10px; font-size: 17px; cursor: pointer; box-shadow: 0 6px 16px rgba(92,111,88,0.25); }
-.modal-bg{display:none; position:fixed; inset:0; background:rgba(58,53,50,0.6); z-index:500; align-items:center; justify-content:center; backdrop-filter: blur(4px);}
-.modal-bg.show{display:flex;}
-.modal{background:#fff; border-radius:16px; padding:38px 32px 32px; max-width:480px; width:92%; text-align:center; box-shadow:0 16px 40px rgba(0,0,0,.15);}
-.score-ring{width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg, var(--primary), var(--accent)); display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 auto 18px;}
-.score-ring .snum{font-size:38px; font-weight:900; color:#fff;}
-.score-ring .stot{font-size:13px; color:rgba(255,255,255,0.85);}
-.stat-row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border-color); font-size:14px;}
-.stat-val{font-weight:700; color:var(--primary-dark);}
-.btn-close{margin-top:22px; background:var(--primary); color:#fff; border:none; padding:11px 32px; border-radius:8px; cursor:pointer;}
+.btn-submit{
+  background: var(--primary); color: #fff; border: none; padding: 14px 52px;
+  border-radius: 10px; font-size: 17px; cursor: pointer; box-shadow: 0 6px 16px rgba(92,111,88,0.25);
+}
+.btn-submit:hover{background: var(--primary-dark);}
+
+/* ── 第 3 層：評量報告儀表板與雷達圖 ── */
+.report-card { text-align: center; }
+.score-big { font-size: 48px; font-weight: 900; color: var(--accent); margin: 10px 0; }
+.chart-container { max-width: 450px; margin: 20px auto; position: relative; }
+.btn-back {
+  background: var(--text-muted); color: #fff; border: none; padding: 10px 24px;
+  border-radius: 8px; cursor: pointer; font-size: 14px; margin-top: 20px;
+}
+.btn-back:hover { background: var(--text-main); }
 .loading-box { text-align: center; padding: 40px; color: var(--text-muted); }
 </style>
 </head>
@@ -95,83 +157,163 @@ body {
 </div>
 
 <div class="header">
-  <h1>🌱 115年度高級中等以下學校及幼兒園教師資格考試</h1>
-  <p>類科：國民小學 | 科目：數學能力測驗練功房</p>
-</div>
-
-<div class="sticky-bar">
-  <div class="timer-label">⏱ 剩餘時間</div>
-  <div id="timer">80:00</div>
-  <div class="answered-label">已作答 <span id="ans-count">0</span> / <span id="total-count">0</span> 題</div>
+  <h1>🌱 國小教師檢定數學科・智慧練功房</h1>
+  <p>金榜題名，從扎實的每一題開始 🌿</p>
 </div>
 
 <div class="container">
-<div class="card">
-  <h2>📋 應試基本資料</h2>
-  <div class="form-row">
-    <div class="form-group">
-      <label for="sName">姓名</label>
-      <input type="text" id="sName" placeholder="請輸入您的姓名">
+
+  <!-- ==================== 第 1 層：入口與模式選擇 ==================== -->
+  <div id="view-mode-select" class="view-section active">
+    <div class="blessing-banner">
+      ✨ <strong>溫馨祝福：</strong> 備考道路不孤單，隨時隨地檢驗學習成效，祝您順利上岸！
     </div>
-    <div class="form-group">
-      <label for="sId">學號 / 准考證號</label>
-      <input type="text" id="sId" placeholder="請輸入您的學號">
+    <div class="modes-grid">
+      <!-- 模式一：依年度 -->
+      <div class="mode-card">
+        <div>
+          <h3>📅 歷屆年度精準刷題</h3>
+          <p>選擇特定年度教檢試題，完整體驗實戰臨場感。</p>
+        </div>
+        <div>
+          <div class="mode-control">
+            <select id="yearSelect">
+              <option value="115">115 年度（模擬試題）</option>
+              <option value="114">114 年度</option>
+              <option value="113">113 年度</option>
+            </select>
+          </div>
+          <button class="btn-start" onclick="initQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
+        </div>
+      </div>
+
+      <!-- 模式二：依單元 -->
+      <div class="mode-card">
+        <div>
+          <h3>📚 單元主題式突破</h3>
+          <p>針對弱勢單元加強，同性質考題集中特訓。</p>
+        </div>
+        <div>
+          <div class="mode-control">
+            <select id="unitSelect">
+              <option value="教材教法">數學教材教法</option>
+              <option value="數與量">數與量</option>
+              <option value="幾何與測量">幾何與測量</option>
+              <option value="統計與機率">統計與機率</option>
+              <option value="代數與函數">代數與函數</option>
+            </select>
+          </div>
+          <button class="btn-start" onclick="initQuiz('unit', document.getElementById('unitSelect').value)">開始單元特訓</button>
+        </div>
+      </div>
+
+      <!-- 模式三：隨機 -->
+      <div class="mode-card">
+        <div>
+          <h3>⚡ 隨機閃電馬拉松</h3>
+          <p>隨機抽取指定題數，快速檢驗綜合反應能力。</p>
+        </div>
+        <div>
+          <div class="mode-control">
+            <select id="limitSelect">
+              <option value="5">5 題（閃電快測）</option>
+              <option value="10" selected>10 題（標準特訓）</option>
+            </select>
+          </div>
+          <button class="btn-start accent" onclick="initQuiz('random', document.getElementById('limitSelect').value)">開始隨機特訓</button>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="instructions">
-  <strong>🌿 作答小叮嚀：</strong>深呼吸，保持輕鬆的心情。完成作答後點擊下方按鈕即可計算成績並同步至雲端記錄！
-</div>
 
-<div id="quiz-container">
-  <div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div>
-</div>
-
-<div class="submit-area" id="submit-area-wrap" style="display:none;">
-  <button class="btn-submit" id="submitBtn" onclick="submitQuiz()">交卷看成績與分析</button>
-</div>
-</div>
-
-<div class="modal-bg" id="resultModal">
-  <div class="modal">
-    <div class="score-ring">
-      <div class="snum" id="scoreNum">0</div>
-      <div class="stot">/ 100 分</div>
+  <!-- ==================== 第 2 層：動態作答與計時引擎 ==================== -->
+  <div id="view-quiz" class="view-section">
+    <div class="sticky-bar">
+      <div class="timer-label">⏱ 剩餘時間: <span id="timer">80:00</span></div>
+      <div class="answered-label">已作答 <span id="ans-count">0</span> / <span id="total-count">0</span> 題</div>
     </div>
-    <h2 id="resultTitle">測驗完成！</h2>
-    <p class="sub" id="resultSub"></p>
-    <div class="result-details" id="resultDetails"></div>
-    <div style="margin-top:12px; font-size:13px; color:var(--text-muted); background:#f4f1ea; border-radius:8px; padding:10px;" id="sheetMsg">
-      📡 正在傳送成績至雲端資料庫...
+
+    <div class="card">
+      <h2>📋 應試基本資料</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="sName">考生姓名</label>
+          <input type="text" id="sName" placeholder="請輸入您的姓名">
+        </div>
+        <div class="form-group">
+          <label for="sId">學號 / 准考證號</label>
+          <input type="text" id="sId" placeholder="請輸入您的學號">
+        </div>
+      </div>
     </div>
-    <button class="btn-close" onclick="closeModal()">確認並關閉</button>
+
+    <div id="quiz-container">
+      <div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div>
+    </div>
+
+    <div class="submit-area" id="submit-area-wrap" style="display:none;">
+      <button class="btn-submit" onclick="submitQuiz()">交卷看成績與分析報告</button>
+    </div>
   </div>
+
+
+  <!-- ==================== 第 3 層：評量報告儀表板與雷達圖 ==================== -->
+  <div id="view-report" class="view-section">
+    <div class="card report-card">
+      <h2>📊 學習成效分析報告</h2>
+      <p id="report-name-info" style="color:var(--text-muted); font-size:14px;"></p>
+      <div class="score-big" id="report-score">0 分</div>
+      <p id="report-summary" style="font-size:15px; margin-bottom:15px;"></p>
+      
+      <!-- Chart.js 各單元表現雷達圖容器 -->
+      <div class="chart-container">
+        <canvas id="abilityRadarChart"></canvas>
+      </div>
+
+      <div style="margin-top:20px; font-size:13.5px; color:var(--text-muted); background:#f4f1ea; border-radius:8px; padding:12px;" id="cloud-sync-status">
+        📡 正在同步成績至 Google Sheets...
+      </div>
+
+      <button class="btn-back" onclick="backToHome()">返回練功房首頁</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
-const urlParams = new URLSearchParams(window.location.search);
-const quizMode = urlParams.get('mode') || 'year';
-const quizVal = urlParams.get('val') || '115';
-const quizLimit = urlParams.get('limit') || '10';
-
-// ⚠️ 【請將下方引號內的網址，換成你剛剛部署好的 Google Apps Script 網址】
+// ⚠️ 【請將下方網址換成你部署好的 Google Apps Script 網址】
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxRgkjMYYuZntOeeQaTgzU_E9K5gc5KznLniaGgfyre5yeZK7vH_GKbA0t1RyW2O6R4OQ/exec";
 
 let questionsData = [];
 let userAnswers = {};
 let timeLeft = 80 * 60;
 let timerInterval = null;
+let currentMode = '';
+let currentVal = '';
+let radarChartInstance = null;
 
-window.addEventListener('DOMContentLoaded', () => { fetchQuizData(); });
+// ── 第 1 層：切換至作答頁面並向 GAS 抓取題目 ──
+function initQuiz(mode, val) {
+  currentMode = mode;
+  currentVal = val;
+  
+  // 切換視圖
+  document.getElementById('view-mode-select').classList.remove('active');
+  document.getElementById('view-quiz').classList.add('active');
+  document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div>';
+  document.getElementById('submit-area-wrap').style.display = 'none';
 
-function fetchQuizData() {
-  const targetUrl = `${GAS_API_URL}?mode=${quizMode}&val=${quizVal}&limit=${quizLimit}`;
+  let targetUrl = `${GAS_API_URL}?mode=${mode}&val=${encodeURIComponent(val)}`;
+  if(mode === 'random') {
+    targetUrl = `${GAS_API_URL}?mode=random&limit=${val}`;
+  }
+
   fetch(targetUrl)
     .then(res => res.json())
     .then(data => {
       if (!data || data.length === 0) {
-        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！</div>';
+        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 內是否有對應資料。</div>';
         return;
       }
       questionsData = data;
@@ -182,12 +324,17 @@ function fetchQuizData() {
     })
     .catch(err => {
       console.error('載入失敗:', err);
-      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查 GAS 網址。</div>';
+      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查網路連線或 GAS 網址。</div>';
     });
 }
 
+// ── 第 2 層：動態渲染試題引擎 ──
 function renderQuiz(questions) {
-  let html = `<div class="sec-header">數學能力測驗（共 ${questions.length} 題）</div>`;
+  let html = `
+    <div class="sec-header">數學能力測驗（共 ${questions.length} 題）</div>
+    <div class="sec-desc">當前練功模式：${getModeDisplayName(currentMode, currentVal)}</div>
+  `;
+
   questions.forEach((q, index) => {
     const qNum = index + 1;
     html += `
@@ -195,9 +342,12 @@ function renderQuiz(questions) {
         <div class="q-title">
           <span class="q-num">${qNum}</span>
           <span class="q-status" id="s${qNum}">未作答</span>
-          ${q.stem || ''}
-        </div>`;
-    if (q.svg_code) html += `<div style="text-align:center; margin:12px 0;">${q.svg_code}</div>`;
+          ${q.stem || '（無題幹）'}
+        </div>
+    `;
+    if (q.svg_code) {
+      html += `<div style="text-align:center; margin:12px 0;">${q.svg_code}</div>`;
+    }
     html += `<div class="options" data-qindex="${index}">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
       const optVal = q['opt_' + optKey.toLowerCase()];
@@ -206,12 +356,21 @@ function renderQuiz(questions) {
           <label class="opt">
             <input type="radio" name="q_${index}" value="${optKey}" onchange="handleSelect(${index}, '${optKey}')">
             <span>(${optKey}) ${optVal}</span>
-          </label>`;
+          </label>
+        `;
       }
     });
     html += `</div></div>`;
   });
+
   document.getElementById('quiz-container').innerHTML = html;
+}
+
+function getModeDisplayName(mode, val) {
+  if (mode === 'year') return `指定年度：${val} 年度`;
+  if (mode === 'unit') return `指定單元：${val}`;
+  if (mode === 'random') return `隨機特訓模式`;
+  return '綜合練習';
 }
 
 function handleSelect(qIndex, optKey) {
@@ -219,7 +378,7 @@ function handleSelect(qIndex, optKey) {
   const qNum = qIndex + 1;
   document.getElementById(`s${qNum}`).textContent = '已作答';
   document.getElementById(`s${qNum}`).className = 'q-status done';
-  
+
   document.querySelectorAll(`.options[data-qindex="${qIndex}"] .opt`).forEach(label => {
     const radio = label.querySelector('input');
     if (radio.value === optKey) label.classList.add('selected');
@@ -229,6 +388,8 @@ function handleSelect(qIndex, optKey) {
 }
 
 function startTimer() {
+  timeLeft = 80 * 60;
+  if(timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     timeLeft--;
     const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
@@ -238,37 +399,109 @@ function startTimer() {
   }, 1000);
 }
 
+// ── 第 3 層：交卷計分與 Chart.js 雷達圖分析儀表板 ──
 function submitQuiz(isAuto = false) {
   const name = document.getElementById('sName').value.trim();
   const sid = document.getElementById('sId').value.trim();
-  if (!isAuto && !name) { alert('請輸入您的姓名！'); return; }
+  if (!isAuto && !name) { alert('請輸入您的姓名再交卷！'); document.getElementById('sName').focus(); return; }
   if (timerInterval) clearInterval(timerInterval);
 
+  // 1. 成績計算與各單元統計
   let correctCount = 0;
-  const pointsPerQ = 100 / questionsData.length;
+  const totalQ = questionsData.length;
+  const pointsPerQ = 100 / totalQ;
+  
+  // 用來統計各單元的答對狀況
+  let unitStats = {}; 
+
   questionsData.forEach((q, index) => {
-    if (userAnswers[index] === q.answer) correctCount++;
+    const uAns = userAnswers[index];
+    const unit = q.unit || '綜合單元';
+    if(!unitStats[unit]) { unitStats[unit] = { total: 0, correct: 0 }; }
+    unitStats[unit].total++;
+
+    if (uAns && uAns === q.answer) {
+      correctCount++;
+      unitStats[unit].correct++;
+    }
   });
+
   const finalScore = Math.round((correctCount * pointsPerQ) * 100) / 100;
 
-  document.getElementById('scoreNum').textContent = finalScore;
-  document.getElementById('resultSub').textContent = `${name || '同學'} 的複習成果：`;
-  document.getElementById('resultDetails').innerHTML = `
-    <div class="stat-row"><span class="stat-label">作答題數</span><span class="stat-val">${Object.keys(userAnswers).length} / ${questionsData.length} 題</span></div>
-    <div class="stat-row"><span class="stat-label">答對題數</span><span class="stat-val">${correctCount} 題</span></div>
-    <div class="stat-row"><span class="stat-label">最終得分</span><span class="stat-val">${finalScore} 分</span></div>`;
-  document.getElementById('resultModal').classList.add('show');
+  // 2. 切換至第 3 層分析報告畫面
+  document.getElementById('view-quiz').classList.remove('active');
+  document.getElementById('view-report').classList.add('active');
+
+  document.getElementById('report-name-info').textContent = `考生：${name} (${sid || '無學號'}) | 模式：${getModeDisplayName(currentMode, currentVal)}`;
+  document.getElementById('report-score').textContent = `${finalScore} 分`;
+  document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} / ${totalQ} 題，答對 ${correctCount} 題。`;
+
+  // 3. 繪製 Chart.js 雷達圖
+  renderRadarChart(unitStats);
+
+  // 4. 同步成績至 Google Sheet (Records)
+  const payload = {
+    studentName: name || '匿名考生',
+    studentId: sid || '無學號',
+    mode: `${currentMode}_${currentVal}`,
+    score: finalScore,
+    totalCorrect: correctCount,
+    details: userAnswers
+  };
 
   fetch(GAS_API_URL, {
     method: 'POST',
-    body: JSON.stringify({ studentName: name, studentId: sid, mode: quizMode, score: finalScore, totalCorrect: correctCount, details: userAnswers })
+    body: JSON.stringify(payload)
   })
   .then(res => res.json())
-  .then(() => { document.getElementById('sheetMsg').textContent = '✅ 成績已成功同步至雲端資料庫！'; })
-  .catch(() => { document.getElementById('sheetMsg').textContent = '⚠️ 雲端同步失敗，但成績已計算完成。'; });
+  .then(() => {
+    document.getElementById('cloud-sync-status').textContent = '✅ 成績已成功同步至 Google Sheets 雲端資料庫！';
+  })
+  .catch(() => {
+    document.getElementById('cloud-sync-status').textContent = '⚠️ 雲端同步失敗（離線計算模式），但不影響成績呈現。';
+  });
 }
 
-function closeModal() { document.getElementById('resultModal').classList.remove('show'); }
+function renderRadarChart(unitStats) {
+  const labels = Object.keys(unitStats);
+  const dataRates = labels.map(u => {
+    const s = unitStats[u];
+    return s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
+  });
+
+  const ctx = document.getElementById('abilityRadarChart').getContext('2d');
+  if(radarChartInstance) radarChartInstance.destroy(); // 避免重複渲染
+
+  radarChartInstance = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '各單元答對率 (%)',
+        data: dataRates,
+        backgroundColor: 'rgba(92, 111, 88, 0.2)',
+        borderColor: '#5c6f58',
+        borderWidth: 2,
+        pointBackgroundColor: '#d97757'
+      }]
+    },
+    options: {
+      scales: {
+        r: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { stepSize: 20 }
+        }
+      }
+    }
+  });
+}
+
+function backToHome() {
+  userAnswers = {};
+  document.getElementById('view-report').classList.remove('active');
+  document.getElementById('view-mode-select').classList.add('active');
+}
 </script>
 </body>
 </html>
