@@ -7,10 +7,9 @@
 <!-- 引入 Chart.js 用於第 3 層的雷達圖分析 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-/* ── GBA 模擬器與品牌主題色系變數設定（字體放大 100% 基礎） ── */
+/* ── GBA 模擬器與品牌主題色系變數設定（全面套用華康雅風體感、字體放大 100%） ── */
 *{box-sizing:border-box;margin:0;padding:0;}
 :root {
-  /* 預設：電玩預設（深色背景、復古綠/金黃點綴、帶 CRT 掃描線） */
   --bg-color: #121620;
   --card-bg: #1e2433;
   --primary: #4ecca3;        /* 復古霓虹綠 */
@@ -22,10 +21,9 @@
   --border-color: #2f3e55;
   --header-bg: linear-gradient(135deg, #1f4068, #162447);
   --wave-color: rgba(78, 204, 163, 0.15);
-  --crt-scanline: block;     /* 預設顯示電玩掃描線 */
+  --crt-scanline: block;     
 }
 
-/* 主題 1：IKEA 營業中風格（經典藍與明亮黃，無掃描線，極清爽） */
 [data-theme="ikea"] {
   --bg-color: #f0f4f8;
   --card-bg: #ffffff;
@@ -41,7 +39,6 @@
   --crt-scanline: none;
 }
 
-/* 主題 2：星巴克風格（沉穩綠與金卡色，無掃描線） */
 [data-theme="starbucks"] {
   --bg-color: #f3f6f4;
   --card-bg: #ffffff;
@@ -57,7 +54,6 @@
   --crt-scanline: none;
 }
 
-/* 主題 3：KFC 經典風格（經典紅與黑白對比，無掃描線） */
 [data-theme="kfc"] {
   --bg-color: #fff9f9;
   --card-bg: #ffffff;
@@ -74,19 +70,19 @@
 }
 
 body {
-  font-family:'Microsoft JhengHei','微軟正黑體',sans-serif;
+  /* 融合華康雅風體與特選圓黑雅緻字型設定 */
+  font-family: "华康雅风体", "LiHei Pro", "Microsoft JhengHei", "微軟正黑體", "Apple LiGothic Medium", sans-serif;
   background: var(--bg-color);
   color: var(--text-main);
   line-height: 1.9;
-  font-size: 30px; /* 基礎字體放大 100% */
+  font-size: 30px; 
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
   transition: background 0.4s ease, color 0.4s ease;
 }
 
-/* ── 覆寫全站文字大小放大 100% ── */
-p, span, label, input, select, button { font-size: 1.1rem; }
+p, span, label, input, select, button { font-size: 1.1rem; font-family: inherit; }
 .header h1 { font-size: 1.9rem !important; }
 .header p { font-size: 1.15rem !important; }
 .header-signboard { font-size: 1rem !important; }
@@ -98,7 +94,6 @@ p, span, label, input, select, button { font-size: 1.1rem; }
 #timer { font-size: 1.6rem !important; }
 .score-big { font-size: 3.5rem !important; }
 
-/* ── 動態波浪背景特效（隨主題色改變） ── */
 .wave-bg-container {
   position: fixed; bottom: 0; left: 0; width: 100%; height: 280px;
   pointer-events: none; z-index: 0; overflow: hidden; opacity: 0.8;
@@ -118,7 +113,6 @@ p, span, label, input, select, button { font-size: 1.1rem; }
   100% { transform: translateX(-50%); }
 }
 
-/* ── GBA 像素格子與 CRT 掃描線背景特效（僅電玩預設顯示） ── */
 .gba-grid-bg {
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background-image: 
@@ -133,13 +127,12 @@ body::after {
   background-size: 100% 4px; z-index: 999; pointer-events: none; opacity: 0.5;
 }
 
-/* ── 升級版放大 200% 與帶流動火箭的 GBA 開場動畫 ── */
 #intro-overlay {
   position: fixed; inset: 0; background: #080a0f;
   z-index: 9999; display: flex; flex-direction: column;
   align-items: center; justify-content: center; color: #4ecca3;
   animation: gbaFadeOut 1.2s ease 2s forwards;
-  pointer-events: none; font-family: 'Courier New', Courier, monospace;
+  pointer-events: none; font-family: inherit;
 }
 .gba-boot-screen {
   border: 5px double #4ecca3; padding: 45px 70px; background: #121620;
@@ -150,7 +143,6 @@ body::after {
 .intro-logo { font-size: 42px; font-weight: 900; letter-spacing: 3px; color: #4ecca3; margin-bottom: 14px; text-shadow: 0 0 15px rgba(78,204,163,0.8); }
 .intro-sub { font-size: 24px; color: #ff6b6b; letter-spacing: 2px; font-weight: bold; }
 
-/* 流動火箭特效 */
 .rocket-left, .rocket-right {
   position: absolute; font-size: 36px; top: 50%; transform: translateY(-50%);
   animation: rocketFly 1.5s ease-in-out infinite alternate;
@@ -168,7 +160,6 @@ body::after {
   100% { opacity: 0; visibility: hidden; }
 }
 
-/* ── Q版招牌風格 Header ── */
 .header {
   background: var(--header-bg);
   color: #fff; padding: 35px 30px; text-align: center;
@@ -184,7 +175,6 @@ body::after {
 }
 .header h1 { letter-spacing: 1px; margin-bottom: 6px; font-weight: 800; }
 
-/* ── 主題切換按鈕區 (右上方獨立角落，明確劃分) ── */
 .theme-switcher-corner {
   position: absolute; top: 15px; right: 20px;
   display: flex; gap: 8px; align-items: center;
@@ -209,7 +199,6 @@ body::after {
 .view-section { display: none; }
 .view-section.active { display: block; }
 
-/* ── 第 1 層：練功房選單樣式 ── */
 .modes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 24px; }
 .mode-card {
   background: var(--card-bg); border-radius: 16px; padding: 28px; border: 2px solid var(--border-color);
@@ -234,7 +223,6 @@ body::after {
 .btn-start:hover { opacity: 0.9; }
 .btn-start.accent { background: var(--accent); color: #fff; }
 
-/* ── 第 2 層：作答引擎樣式 ── */
 .sticky-bar{
   position: sticky; top: 0; z-index: 200; background: var(--card-bg);
   color: var(--text-main); display: flex; align-items: center; justify-content: space-between; padding: 16px 32px;
@@ -272,28 +260,34 @@ body::after {
 }
 .btn-submit:hover{opacity: 0.9;}
 
-/* ── 第 3 層：評量報告儀表板與雷達圖 ── */
+/* 返回按鈕與右下角浮動返回功能（修正三） */
+.btn-back-corner {
+  background: var(--accent); color: #fff; border: none; padding: 10px 20px;
+  border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: opacity 0.2s;
+}
+.btn-back-corner:hover { opacity: 0.85; }
+
+/* ── 第 3 層：評量報告儀表板與圖表區 ── */
 .report-card { text-align: center; }
 .score-big { font-weight: 900; color: var(--accent); margin: 15px 0; }
 .chart-container { max-width: 520px; margin: 25px auto; position: relative; }
-.btn-back {
-  background: var(--text-muted); color: #fff; border: none; padding: 12px 28px;
-  border-radius: 10px; cursor: pointer; margin-top: 25px;
+.ai-coach-box {
+  background: var(--accent-light); border: 2px dashed var(--primary); border-radius: 12px;
+  padding: 20px; text-align: left; margin-top: 25px; color: var(--text-main);
 }
-.btn-back:hover { opacity: 0.8; }
+.ai-coach-title { font-weight: bold; color: var(--primary); margin-bottom: 8px; font-size: 1.2rem; }
 .loading-box { text-align: center; padding: 50px; color: var(--text-muted); }
 </style>
 </head>
 <body>
 
-<!-- GBA 像素格子與動態波浪背景特效 -->
 <div class="gba-grid-bg" aria-hidden="true"></div>
 <div class="wave-bg-container" aria-hidden="true">
   <div class="wave"></div>
   <div class="wave"></div>
 </div>
 
-<!-- GBA 經典開機畫面動畫（中文化、字體放大 200%、火箭流動） -->
 <div id="intro-overlay">
   <div class="gba-boot-screen">
     <div class="rocket-left">🚀</div>
@@ -304,7 +298,6 @@ body::after {
   </div>
 </div>
 
-<!-- Q版招牌風格 Header 與右上角獨立主題切換 -->
 <div class="header">
   <div class="theme-switcher-corner">
     <span style="color:#fff;">🕹️ 主題：</span>
@@ -326,11 +319,11 @@ body::after {
       ✨ <strong>展望明年6月：</strong> 教檢一定過！
     </div>
     <div class="modes-grid">
-      <!-- 模式一：依年度 -->
+      <!-- 模式一：依年度（選擇年度抓取該年度所有內容，修正四） -->
       <div class="mode-card">
         <div>
           <h3>📅 歷屆年度精準刷題</h3>
-          <p>選擇特定年度教檢試題，完整體驗實戰臨場感。</p>
+          <p>選擇特定年度教檢試題（包含普通數學與教材教法全方位考題）。</p>
         </div>
         <div>
           <div class="mode-control">
@@ -344,31 +337,35 @@ body::after {
         </div>
       </div>
 
-      <!-- 模式二：依單元 -->
+      <!-- 模式二：依單元（支援大主項目二選一與細分子項目，修正五） -->
       <div class="mode-card">
         <div>
           <h3>📚 單元主題式突破</h3>
-          <p>針對弱勢單元加強，同性質考題集中特訓。</p>
+          <p>可選擇大類別通關，或針對弱勢子項目集中特訓。</p>
         </div>
         <div>
-<div class="mode-control">
-  <select id="unitSelect">
-    <optgroup label="📐 普通數學類">
-      <option value="n數與量">n數與量</option>
-      <option value="s空間與形狀">s空間與形狀</option>
-      <option value="g坐標幾何">g坐標幾何</option>
-      <option value="r關係">r關係</option>
-      <option value="a代數">a代數</option>
-      <option value="f函數">f函數</option>
-      <option value="d資料與不確定性">d資料與不確定性</option>
-    </optgroup>
-    <optgroup label="🍎 教材教法類">
-      <option value="數學結構與內容">數學結構與內容</option>
-      <option value="認知與迷思">認知與迷思</option>
-      <option value="教學與評量">教學與評量</option>
-    </optgroup>
-  </select>
-</div>
+          <div class="mode-control">
+            <select id="unitSelect">
+              <optgroup label="🌟 大類別自由特訓">
+                <option value="普通數學">📐 普通數學（全範圍）</option>
+                <option value="教材教法">🍎 教材教法（全範圍）</option>
+              </optgroup>
+              <optgroup label="📐 普通數學子項目">
+                <option value="n數與量">n數與量</option>
+                <option value="s空間與形狀">s空間與形狀</option>
+                <option value="g坐標幾何">g坐標幾何</option>
+                <option value="r關係">r關係</option>
+                <option value="a代數">a代數</option>
+                <option value="f函數">f函數</option>
+                <option value="d資料與不確定性">d資料與不確定性</option>
+              </optgroup>
+              <optgroup label="🍎 教材教法子項目">
+                <option value="數學結構與內容">數學結構與內容</option>
+                <option value="認知與迷思">認知與迷思</option>
+                <option value="教學與評量">教學與評量</option>
+              </optgroup>
+            </select>
+          </div>
           <button class="btn-start" onclick="initQuiz('unit', document.getElementById('unitSelect').value)">開始單元特訓</button>
         </div>
       </div>
@@ -397,10 +394,12 @@ body::after {
   <div id="view-quiz" class="view-section">
     <div class="sticky-bar">
       <div class="timer-label">⏱ 剩餘時間: <span id="timer">80:00</span></div>
-      <div class="answered-label">已作答 <span id="ans-count">0</span> / <span id="total-count">0</span> 題</div>
+      <div style="display:flex; align-items:center; gap:15px;">
+        <div class="answered-label">已作答 <span id="ans-count">0</span> / <span id="total-count">0</span> 題</div>
+        <button class="btn-back-corner" onclick="backToHome()">返回首頁</button>
+      </div>
     </div>
 
-    <!-- 僅保留考生姓名 -->
     <div class="card">
       <h2>📋 應試基本資料</h2>
       <div class="form-group">
@@ -419,7 +418,7 @@ body::after {
   </div>
 
 
-  <!-- ==================== 第 3 層：評量報告儀表板與雷達圖 ==================== -->
+  <!-- ==================== 第 3 層：評量報告儀表板與 AI 講評（修正一與六） ==================== -->
   <div id="view-report" class="view-section">
     <div class="card report-card">
       <h2>📊 學習成效分析報告</h2>
@@ -427,16 +426,25 @@ body::after {
       <div class="score-big" id="report-score">0 分</div>
       <p id="report-summary" style="margin-bottom:20px;"></p>
       
-      <!-- Chart.js 各單元表現雷達圖容器 -->
-      <div class="chart-container">
-        <canvas id="abilityRadarChart"></canvas>
+      <!-- 動態圖表容器：依模式切換顯示長條圖或雷達圖 -->
+      <div class="chart-container" id="chart-wrapper-1">
+        <canvas id="primaryChart"></canvas>
+      </div>
+      <div class="chart-container" id="chart-wrapper-2" style="display:none;">
+        <canvas id="secondaryChart"></canvas>
+      </div>
+
+      <!-- AI 擬真導師講評與建議分析（修正六） -->
+      <div class="ai-coach-box">
+        <div class="ai-coach-title">🤖 AI 智慧教檢導師診斷講評</div>
+        <div id="ai-coach-content">正在運算學習成效與弱點分析...</div>
       </div>
 
       <div style="margin-top:25px; color:var(--text-muted); background:var(--accent-light); border-radius:10px; padding:15px;" id="cloud-sync-status">
         📡 正在同步成績至 Google Sheets...
       </div>
 
-      <button class="btn-back" onclick="backToHome()">返回練功房首頁</button>
+      <button class="btn-back-corner" style="margin-top:25px;" onclick="backToHome()">返回練功房首頁</button>
     </div>
   </div>
 
@@ -452,9 +460,9 @@ let timeLeft = 80 * 60;
 let timerInterval = null;
 let currentMode = '';
 let currentVal = '';
-let radarChartInstance = null;
+let primaryChartInstance = null;
+let secondaryChartInstance = null;
 
-// ── 主題切換邏輯 ──
 function setTheme(themeName) {
   if (themeName === 'default') {
     document.documentElement.removeAttribute('data-theme');
@@ -465,7 +473,6 @@ function setTheme(themeName) {
   document.getElementById(`btn-${themeName}`).classList.add('active');
 }
 
-// ── 第 1 層：切換至作答頁面並向 GAS 抓取題目 ──
 function initQuiz(mode, val) {
   currentMode = mode;
   currentVal = val;
@@ -484,7 +491,7 @@ function initQuiz(mode, val) {
     .then(res => res.json())
     .then(data => {
       if (!data || data.length === 0) {
-        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 的 `unit` 欄位是否有對應填寫。</div>';
+        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 的 domain / unit 欄位是否有對應填寫。</div>';
         return;
       }
       questionsData = data;
@@ -499,7 +506,6 @@ function initQuiz(mode, val) {
     });
 }
 
-// ── 第 2 層：動態渲染試題引擎 ──
 function renderQuiz(questions) {
   let html = `
     <div class="sec-header">數學能力測驗（共 ${questions.length} 題）</div>
@@ -538,9 +544,9 @@ function renderQuiz(questions) {
 }
 
 function getModeDisplayName(mode, val) {
-  if (mode === 'year') return `指定年度：${val} 年度`;
+  if (mode === 'year') return `歷屆年度精準刷題：${val} 年度`;
   if (mode === 'unit') return `單元特訓：${val}`;
-  if (mode === 'random') return `隨機特訓模式`;
+  if (mode === 'random') return `隨機閃電馬拉松`;
   return '綜合練習';
 }
 
@@ -570,7 +576,7 @@ function startTimer() {
   }, 1000);
 }
 
-// ── 第 3 層：交卷計分與 Chart.js 雷達圖分析儀表板 ──
+// ── 第 3 層：交卷計分、圖表動態生成與 AI 講評（修正一與六） ──
 function submitQuiz(isAuto = false) {
   const name = document.getElementById('sName').value.trim();
   if (!isAuto && !name) { alert('請輸入您的姓名再交卷！'); document.getElementById('sName').focus(); return; }
@@ -580,16 +586,23 @@ function submitQuiz(isAuto = false) {
   const totalQ = questionsData.length;
   const pointsPerQ = 100 / totalQ;
   let unitStats = {}; 
+  let domainStats = { "普通數學": { total: 0, correct: 0 }, "教材教法": { total: 0, correct: 0 } };
 
   questionsData.forEach((q, index) => {
     const uAns = userAnswers[index];
     const unit = q.unit || '綜合單元';
+    const domain = q.domain || (unit.includes('數學') ? '普通數學' : '教材教法');
+
     if(!unitStats[unit]) { unitStats[unit] = { total: 0, correct: 0 }; }
     unitStats[unit].total++;
+
+    if(!domainStats[domain]) { domainStats[domain] = { total: 0, correct: 0 }; }
+    domainStats[domain].total++;
 
     if (uAns && uAns === q.answer) {
       correctCount++;
       unitStats[unit].correct++;
+      domainStats[domain].correct++;
     }
   });
 
@@ -602,7 +615,8 @@ function submitQuiz(isAuto = false) {
   document.getElementById('report-score').textContent = `${finalScore} 分`;
   document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} / ${totalQ} 題，答對 ${correctCount} 題。`;
 
-  renderRadarChart(unitStats);
+  // 渲染圖表與 AI 講評
+  renderChartsAndCoach(unitStats, domainStats, finalScore);
 
   const payload = {
     studentName: name || '匿名考生',
@@ -626,39 +640,88 @@ function submitQuiz(isAuto = false) {
   });
 }
 
-function renderRadarChart(unitStats) {
-  const labels = Object.keys(unitStats);
-  const dataRates = labels.map(u => {
-    const s = unitStats[u];
-    return s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
-  });
+function renderChartsAndCoach(unitStats, domainStats, score) {
+  const ctx1 = document.getElementById('primaryChart').getContext('2d');
+  const ctx2 = document.getElementById('secondaryChart').getContext('2d');
 
-  const ctx = document.getElementById('abilityRadarChart').getContext('2d');
-  if(radarChartInstance) radarChartInstance.destroy();
+  if(primaryChartInstance) primaryChartInstance.destroy();
+  if(secondaryChartInstance) secondaryChartInstance.destroy();
 
-  radarChartInstance = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: '各單元答對率 (%)',
-        data: dataRates,
-        backgroundColor: 'rgba(78, 204, 163, 0.25)',
-        borderColor: '#4ecca3',
-        borderWidth: 3,
-        pointBackgroundColor: '#ff6b6b'
-      }]
-    },
-    options: {
-      scales: {
-        r: {
-          beginAtZero: true,
-          max: 100,
-          ticks: { stepSize: 20 }
-        }
-      }
-    }
-  });
+  const wrapper2 = document.getElementById('chart-wrapper-2');
+  let aiText = "";
+
+  if (currentMode === 'year' || currentMode === 'random') {
+    // 年度或隨機模式：顯示雙圖表（大類長條圖 + 子項目雷達圖）
+    wrapper2.style.display = 'block';
+
+    const domLabels = Object.keys(domainStats);
+    const domRates = domLabels.map(d => domainStats[d].total > 0 ? Math.round((domainStats[d].correct / domainStats[d].total) * 100) : 0);
+
+    primaryChartInstance = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: domLabels,
+        datasets: [{
+          label: '三大領域答對率 (%)',
+          data: domRates,
+          backgroundColor: ['#4ecca3', '#ff6b6b']
+        }]
+      },
+      options: { scales: { y: { beginAtZero: true, max: 100 } } }
+    });
+
+    const unitLabels = Object.keys(unitStats);
+    const unitRates = unitLabels.map(u => Math.round((unitStats[u].correct / unitStats[u].total) * 100));
+
+    secondaryChartInstance = new Chart(ctx2, {
+      type: 'radar',
+      data: {
+        labels: unitLabels,
+        datasets: [{
+          label: '各子項目細部表現 (%)',
+          data: unitRates,
+          backgroundColor: 'rgba(78, 204, 163, 0.25)',
+          borderColor: '#4ecca3',
+          borderWidth: 3,
+          pointBackgroundColor: '#ff6b6b'
+        }]
+      },
+      options: { scales: { r: { beginAtZero: true, max: 100 } } }
+    });
+
+    aiText = score >= 80 
+      ? `🎯 <strong>【卓越表現】</strong> 你的實戰總成績達到 ${score} 分！各領域掌握度相當均衡，尤其在普通數學與教材教法的綜合應用上展現出扎實實力。距離明年 6 月教檢上岸已經穩操勝券，建議考前多做歷屆試題維持手感即可！`
+      : score >= 60
+      ? `📈 <strong>【穩健過關】</strong> 測驗成績 ${score} 分！已達基本及格標準。從雷達圖可看出部分子項目（如幾何或認知迷思）仍有失分，建議針對失分較多的子項目進行「單元特訓」，強化觀念連結。`
+      : `⚠️ <strong>【急需加強】</strong> 目前成績為 ${score} 分。別氣餒！這正是找出盲點的最佳時機。建議優先利用單元特訓模式，逐一攻克「普通數學」與「教材教法」的基礎概念，穩扎穩打一定能大幅進步！`;
+
+  } else {
+    // 單元模式：單一深度雷達圖 + 圖表說明 + AI 講評
+    wrapper2.style.display = 'none';
+
+    const labels = Object.keys(unitStats);
+    const dataRates = labels.map(u => Math.round((unitStats[u].correct / unitStats[u].total) * 100));
+
+    primaryChartInstance = new Chart(ctx1, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '該單元核心掌握度 (%)',
+          data: dataRates,
+          backgroundColor: 'rgba(255, 107, 107, 0.25)',
+          borderColor: '#ff6b6b',
+          borderWidth: 3,
+          pointBackgroundColor: '#4ecca3'
+        }]
+      },
+      options: { scales: { r: { beginAtZero: true, max: 100 } } }
+    });
+
+    aiText = `📚 <strong>【單元特訓解析】</strong> 本次針對「${currentVal}」進行專項突破。你的得分率為 ${score} 分。單元特訓旨在精準抓出盲點，若正確率未達 80%，建議回頭翻閱教師手冊與教材教法核心概念，釐清學童常見迷思！`;
+  }
+
+  document.getElementById('ai-coach-content').innerHTML = aiText;
 }
 
 function backToHome() {
