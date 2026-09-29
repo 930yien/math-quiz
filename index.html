@@ -108,8 +108,6 @@ body {
 #timer.warn{color: #d97757;}
 #timer.danger{color: #bc4749;}
 
-.form-row{display: flex; gap: 16px; flex-wrap: wrap;}
-.form-group{flex: 1; min-width: 180px;}
 .form-group label{display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 5px;}
 .form-group input{width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 14px; background: #fff;}
 
@@ -178,16 +176,16 @@ body {
         <div>
           <div class="mode-control">
             <select id="yearSelect">
-              <option value="115">115 年度★編撰中★</option>
-              <option value="114">114 年度★編撰中★</option>
-              <option value="113">113 年度★編撰中★</option>
+              <option value="115">115 年度（模擬試題）</option>
+              <option value="114">114 年度</option>
+              <option value="113">113 年度</option>
             </select>
           </div>
           <button class="btn-start" onclick="initQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
         </div>
       </div>
 
-      <!-- 模式二：依單元 -->
+      <!-- 模式二：依單元 (擴充為普通數學與教材教法細分項) -->
       <div class="mode-card">
         <div>
           <h3>📚 單元主題式突破</h3>
@@ -196,11 +194,18 @@ body {
         <div>
           <div class="mode-control">
             <select id="unitSelect">
-              <option value="教材教法">教材教法</option>
-              <option value="數與量">數與量</option>
-              <option value="幾何與測量">幾何與測量</option>
-              <option value="統計與機率">統計與機率</option>
-              <option value="代數與函數">代數與函數</option>
+              <optgroup label="📐 普通數學類">
+                <option value="普通數學-數與量">普通數學 - 數與量</option>
+                <option value="普通數學-代數與函數">普通數學 - 代數與函數</option>
+                <option value="普通數學-幾何與測量">普通數學 - 幾何與測量</option>
+                <option value="普通數學-統計與機率">普通數學 - 統計與機率</option>
+              </optgroup>
+              <optgroup label="🍎 教材教法類">
+                <option value="教材教法-數與計算教材">教材教法 - 數與計算教材</option>
+                <option value="教材教法-量與實測教材">教材教法 - 量與實測教材</option>
+                <option value="教材教法-空間與形體教材">教材教法 - 空間與形體教材</option>
+                <option value="教材教法-統計機率與代數思維">教材教法 - 統計機率與代數思維</option>
+              </optgroup>
             </select>
           </div>
           <button class="btn-start" onclick="initQuiz('unit', document.getElementById('unitSelect').value)">開始單元特訓</button>
@@ -234,17 +239,12 @@ body {
       <div class="answered-label">已作答 <span id="ans-count">0</span> / <span id="total-count">0</span> 題</div>
     </div>
 
+    <!-- 簡化：只保留考生姓名 -->
     <div class="card">
       <h2>📋 應試基本資料</h2>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="sName">考生姓名</label>
-          <input type="text" id="sName" placeholder="請輸入您的姓名">
-        </div>
-        <div class="form-group">
-          <label for="sId">學號 / 准考證號</label>
-          <input type="text" id="sId" placeholder="請輸入您的學號">
-        </div>
+      <div class="form-group">
+        <label for="sName">考生姓名</label>
+        <input type="text" id="sName" placeholder="請輸入您的姓名">
       </div>
     </div>
 
@@ -282,7 +282,7 @@ body {
 </div>
 
 <script>
-// ⚠️ 【請將下方網址換成你部署好的 Google Apps Script 網址】
+// ⚠️ 【請確保下方網址為你部署好的 Google Apps Script 網址】
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxRgkjMYYuZntOeeQaTgzU_E9K5gc5KznLniaGgfyre5yeZK7vH_GKbA0t1RyW2O6R4OQ/exec";
 
 let questionsData = [];
@@ -298,7 +298,6 @@ function initQuiz(mode, val) {
   currentMode = mode;
   currentVal = val;
   
-  // 切換視圖
   document.getElementById('view-mode-select').classList.remove('active');
   document.getElementById('view-quiz').classList.add('active');
   document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div>';
@@ -313,7 +312,7 @@ function initQuiz(mode, val) {
     .then(res => res.json())
     .then(data => {
       if (!data || data.length === 0) {
-        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 內是否有對應資料。</div>';
+        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 的 `unit` 欄位是否有對應填寫（例如：普通數學-數與量）。</div>';
         return;
       }
       questionsData = data;
@@ -368,7 +367,7 @@ function renderQuiz(questions) {
 
 function getModeDisplayName(mode, val) {
   if (mode === 'year') return `指定年度：${val} 年度`;
-  if (mode === 'unit') return `指定單元：${val}`;
+  if (mode === 'unit') return `單元特訓：${val}`;
   if (mode === 'random') return `隨機特訓模式`;
   return '綜合練習';
 }
@@ -402,16 +401,12 @@ function startTimer() {
 // ── 第 3 層：交卷計分與 Chart.js 雷達圖分析儀表板 ──
 function submitQuiz(isAuto = false) {
   const name = document.getElementById('sName').value.trim();
-  const sid = document.getElementById('sId').value.trim();
   if (!isAuto && !name) { alert('請輸入您的姓名再交卷！'); document.getElementById('sName').focus(); return; }
   if (timerInterval) clearInterval(timerInterval);
 
-  // 1. 成績計算與各單元統計
   let correctCount = 0;
   const totalQ = questionsData.length;
   const pointsPerQ = 100 / totalQ;
-  
-  // 用來統計各單元的答對狀況
   let unitStats = {}; 
 
   questionsData.forEach((q, index) => {
@@ -428,21 +423,19 @@ function submitQuiz(isAuto = false) {
 
   const finalScore = Math.round((correctCount * pointsPerQ) * 100) / 100;
 
-  // 2. 切換至第 3 層分析報告畫面
   document.getElementById('view-quiz').classList.remove('active');
   document.getElementById('view-report').classList.add('active');
 
-  document.getElementById('report-name-info').textContent = `考生：${name} (${sid || '無學號'}) | 模式：${getModeDisplayName(currentMode, currentVal)}`;
+  document.getElementById('report-name-info').textContent = `考生：${name} | 模式：${getModeDisplayName(currentMode, currentVal)}`;
   document.getElementById('report-score').textContent = `${finalScore} 分`;
   document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} / ${totalQ} 題，答對 ${correctCount} 題。`;
 
-  // 3. 繪製 Chart.js 雷達圖
   renderRadarChart(unitStats);
 
-  // 4. 同步成績至 Google Sheet (Records)
+  // 同步至 Google Sheet (Records) - 欄位不含學號
   const payload = {
     studentName: name || '匿名考生',
-    studentId: sid || '無學號',
+    studentId: '無',
     mode: `${currentMode}_${currentVal}`,
     score: finalScore,
     totalCorrect: correctCount,
@@ -470,7 +463,7 @@ function renderRadarChart(unitStats) {
   });
 
   const ctx = document.getElementById('abilityRadarChart').getContext('2d');
-  if(radarChartInstance) radarChartInstance.destroy(); // 避免重複渲染
+  if(radarChartInstance) radarChartInstance.destroy();
 
   radarChartInstance = new Chart(ctx, {
     type: 'radar',
