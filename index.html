@@ -334,4 +334,376 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
 
     <div class="chart-box-modern">
       <h3 style="color:var(--primary); margin-bottom:8px; font-size:0.95rem;">📈 核心領域得分表現</h3>
-      <div class="chart-container" style="position: relative;
+      <div class="chart-container" style="position: relative; height:160px;"><canvas id="modernBarChart"></canvas></div>
+    </div>
+
+    <div class="ai-coach-box">
+      <div class="ai-coach-title">🤖 你的專屬 AI 陪伴導師心裡話</div>
+      <div id="ai-coach-content" style="white-space: pre-line;">正在傾聽你的努力與感受...</div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:14px;">
+      <button class="btn-start accent" onclick="enterFourthLayerReview()" style="flex:1; padding:10px; font-size:0.9rem;">🔍 進入第四層檢討錯題與標籤</button>
+      <button class="btn-start" onclick="closeReportModalOnly()" style="flex:1; padding:10px; font-size:0.9rem;">關閉視窗</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 通用系統通知彈跳視窗（提醒與自動交卷） ==================== -->
+<div class="modal-overlay" id="alertModal">
+  <div class="modal-content" style="max-width:450px; text-align:center;">
+    <h3 id="alert-title" style="color:var(--accent); margin-bottom:12px; font-size:1.2rem;">⚠️ 考試時間提醒</h3>
+    <p id="alert-message" style="font-size:0.95rem; line-height:1.6; margin-bottom:20px;"></p>
+    <button class="btn-submit" onclick="closeAlertModal()">我知道了</button>
+  </div>
+</div>
+
+<script>
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxRgkjMYYuZntOeeQaTgzU_E9K5gc5KznLniaGgfyre5yeZK7vH_GKbA0t1RyW2O6R4OQ/exec";
+
+let questionsData = [];
+let userAnswers = {};
+let starredQuestions = {}; 
+let lastExamResults = null; 
+let timeLeft = 30 * 60;
+let timerInterval = null;
+let currentMode = '';
+let currentVal = '';
+let barChartInstance = null;
+let warned10M = false;
+let warned3M = false;
+
+function setTheme(themeName) {
+  if (themeName === 'default') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', themeName);
+  document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`btn-${themeName}`).classList.add('active');
+}
+
+function initQuiz(mode, val) {
+  currentMode = mode;
+  currentVal = val;
+  userAnswers = {};
+  starredQuestions = {};
+  lastExamResults = null;
+  warned10M = false;
+  warned3M = false;
+  
+  // 修復：正確切換視圖，隱藏第一層與第四層，顯示第二層作答區
+  document.getElementById('view-mode-select').classList.remove('active');
+  document.getElementById('view-review').classList.remove('active');
+  document.getElementById('view-quiz').classList.add('active');
+  
+  document.getElementById('student-info-card').style.display = 'block';
+  document.getElementById('report-trigger-btn').style.display = 'none';
+  document.getElementById('timer-box').style.display = 'block';
+  document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div>';
+  document.getElementById('submit-area-wrap').style.display = 'none';
+
+  let targetUrl = `${GAS_API_URL}?mode=${mode}&val=${encodeURIComponent(val)}`;
+  if(mode === 'random') targetUrl = `${GAS_API_URL}?mode=random&limit=${val}`;
+
+  fetch(targetUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (!data || data.length === 0) {
+        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 的欄位是否有對應填寫。</div>';
+        return;
+      }
+      questionsData = data;
+      document.getElementById('total-count').textContent = questionsData.length;
+      renderQuiz(questionsData);
+      startTimer();
+      document.getElementById('submit-area-wrap').style.display = 'block';
+    })
+    .catch(err => {
+      console.error('載入失敗:', err);
+      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查 GAS 網址。</div>';
+    });
+}
+
+function renderQuiz(questions) {
+  let html = `
+    <div style="background:var(--primary); color:#fff; border-radius:8px 8px 0 0; padding:11px 18px; font-weight:700; font-size:0.92rem;">數學能力測驗（共 ${questions.length} 題）</div>
+    <div style="background:var(--accent-light); padding:9px 18px; font-size:0.85rem; color:var(--text-main); border:2px solid var(--border-color); border-top:none; margin-bottom:14px;">當前練功模式：${getModeDisplayName(currentMode, currentVal)}</div>
+  `;
+
+  questions.forEach((q, index) => {
+    const qNum = index + 1;
+    const isStarred = starredQuestions[index];
+    const userAns = userAnswers[index];
+
+    html += `
+      <div class="card" style="border:2px solid var(--border-color); padding:18px; margin-bottom:15px; position:relative;">
+        <div class="q-header-meta">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="q-num">第 ${qNum} 題</span>
+            <span class="q-status ${userAns !== undefined && userAns !== null && userAns !== "" ? 'done' : ''}" id="s${qNum}">${userAns !== undefined && userAns !== null && userAns !== "" ? '已作答' : '未作答'}</span>
+          </div>
+          <button type="button" class="q-star-badge" id="star_btn_${index}" onclick="toggleStar(${index})" title="標記疑難題">${isStarred ? '⭐' : '☆'}</button>
+        </div>
+
+        <div class="q-title">${q.stem || '（無題幹）'}</div>
+    `;
+    if (q.svg_code) html += `<div style="text-align:center; margin:12px 0;">${q.svg_code}</div>`;
+    
+    html += `<div class="options" data-qindex="${index}">`;
+    ['A', 'B', 'C', 'D'].forEach(optKey => {
+      const optVal = q['opt_' + optKey.toLowerCase()];
+      if (optVal !== undefined && optVal !== null && optVal !== "") {
+        const isSelected = (userAns === optKey);
+        let optStyle = isSelected ? "background:var(--accent-light); border-color:var(--accent); font-weight:bold;" : "";
+        
+        html += `
+          <label class="opt" style="${optStyle}">
+            <input type="radio" name="q_${index}" value="${optKey}" ${isSelected ? 'checked' : ''} onchange="handleSelect(${index}, '${optKey}')">
+            <span>(${optKey}) ${optVal}</span>
+          </label>
+        `;
+      }
+    });
+    html += `</div></div>`;
+  });
+
+  document.getElementById('quiz-container').innerHTML = html;
+  triggerMathJax();
+}
+
+function toggleStar(index) {
+  const btn = document.getElementById(`star_btn_${index}`);
+  if (starredQuestions[index]) {
+    delete starredQuestions[index];
+    btn.textContent = "☆";
+  } else {
+    starredQuestions[index] = true;
+    btn.textContent = "⭐";
+  }
+  document.getElementById('starred-count').textContent = Object.keys(starredQuestions).length;
+}
+
+function getModeDisplayName(mode, val) {
+  if (mode === 'year') return `歷屆年度精準刷題：${val} 年度`;
+  if (mode === 'unit') return `單元特訓：${val}`;
+  if (mode === 'random') return `隨機閃電馬拉松`;
+  return '綜合練習';
+}
+
+function handleSelect(qIndex, optKey) {
+  userAnswers[qIndex] = optKey;
+  const qNum = qIndex + 1;
+  document.getElementById(`s${qNum}`).textContent = '已作答';
+  document.getElementById(`s${qNum}`).className = 'q-status done';
+
+  document.querySelectorAll(`.options[data-qindex="${qIndex}"] .opt`).forEach(label => {
+    const radio = label.querySelector('input');
+    if (radio.value === optKey) label.classList.add('selected');
+    else label.classList.remove('selected');
+  });
+  document.getElementById('ans-count').textContent = Object.keys(userAnswers).length;
+}
+
+function startTimer() {
+  timeLeft = 30 * 60;
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+    const el = document.getElementById('timer');
+    if(el) el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+
+    if (m === 10 && s === 0 && !warned10M) {
+      warned10M = true;
+      showAlertModal("⏳ 時間提醒", "考試時間剩下 10 分鐘囉！請把握時間檢查未作答的題目。");
+    }
+    if (m === 3 && s === 0 && !warned3M) {
+      warned3M = true;
+      showAlertModal("⚠️ 緊急時間提醒", "考試時間僅剩 3 分鐘！系統即將在時間到時自動交卷。");
+    }
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      showAlertModal("⏰ 時間到", "考試時間已到，系統已為您自動交卷！");
+      submitQuiz(true);
+    }
+  }, 1000);
+}
+
+function showAlertModal(title, msg) {
+  document.getElementById('alert-title').textContent = title;
+  document.getElementById('alert-message').textContent = msg;
+  document.getElementById('alertModal').classList.add('show');
+}
+function closeAlertModal() {
+  document.getElementById('alertModal').classList.remove('show');
+}
+
+function submitQuiz(isAuto = false) {
+  const name = document.getElementById('sName').value.trim();
+  if (!isAuto && !name) { alert('請輸入您的姓名再交卷！'); document.getElementById('sName').focus(); return; }
+  if (timerInterval) clearInterval(timerInterval);
+
+  let correctCount = 0;
+  const totalQ = questionsData.length;
+  const pointsPerQ = 100 / totalQ;
+  let domainStats = { "普通數學": { total: 0, correct: 0 }, "教材教法": { total: 0, correct: 0 } };
+
+  questionsData.forEach((q, index) => {
+    const uAns = userAnswers[index];
+    const domain = q.domain || '普通數學';
+    if(!domainStats[domain]) domainStats[domain] = { total: 0, correct: 0 };
+    domainStats[domain].total++;
+
+    if (uAns && uAns === q.answer) {
+      correctCount++;
+      domainStats[domain].correct++;
+    }
+  });
+
+  const finalScore100 = Math.round((correctCount * pointsPerQ) * 100) / 100;
+  const realScore52 = correctCount * 2;
+
+  lastExamResults = { name: name || '匿名考生', score100: finalScore100, realScore52, correctCount, totalQ, domainStats };
+
+  document.getElementById('report-name-info').textContent = `考生：${name || '匿名考生'} | 模式：${getModeDisplayName(currentMode, currentVal)}`;
+  document.getElementById('report-score').textContent = `100分制換算：${finalScore100} 分`;
+  document.getElementById('report-real-score').textContent = `🎯 數學教檢實戰得分：${realScore52} / 52 分（每題 2 分，共答對 ${correctCount} 題）`;
+  document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} / ${totalQ} 題。`;
+
+  renderModernBarChart(domainStats);
+
+  let aiLoveText = finalScore100 >= 85 
+    ? `親愛的 ${name || '同學'}，看到你的成績真的替你感到好驕傲！\n拿到 ${finalScore100} 分（教檢實戰 ${realScore52}/52 分）絕不是偶然，那是你無數個安靜深夜裡對每一題觀念反覆推敲的成果。距離明年 6 月教檢上岸，你已經穩穩踩在最棒的節奏上！`
+    : finalScore100 >= 60
+    ? `嗨，${name || '同學'}！${finalScore100} 分的穩健表現代表你已跨過及格門檻！\n每一個答錯的題目都是在幫我們提前排雷。點擊下方進入「第四層深度檢討」，我們一起把觀念補起來，老師會一直陪著你！`
+    : `抱抱你，${name || '同學'}。一次的考不好完全不能定義你的能力，它只是溫馨提醒我們哪些觀念需要被多照顧。別怕，我們有 5 人團隊與 AI 導師陪你拆解觀念，慢慢來，你絕對做得到！`;
+  
+  document.getElementById('ai-coach-content').innerHTML = aiLoveText;
+  document.getElementById('reportModal').classList.add('show');
+
+  fetch(GAS_API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ studentName: name || '匿名考生', studentId: '無', mode: `${currentMode}_${currentVal}`, score: finalScore100, totalCorrect: correctCount, details: userAnswers })
+  }).catch(() => {});
+}
+
+function renderModernBarChart(domainStats) {
+  const ctx = document.getElementById('modernBarChart').getContext('2d');
+  if(barChartInstance) barChartInstance.destroy();
+
+  const labels = Object.keys(domainStats);
+  const rates = labels.map(d => domainStats[d].total > 0 ? Math.round((domainStats[d].correct / domainStats[d].total) * 100) : 0);
+
+  barChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '答對率 (%)',
+        data: rates,
+        backgroundColor: ['#4ecca3', '#ff6b6b'],
+        borderRadius: 6,
+        barThickness: 28
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, max: 100, ticks: { stepSize: 25 } } }
+    }
+  });
+}
+
+function openReportModal() {
+  document.getElementById('reportModal').classList.add('show');
+}
+
+function closeReportModalOnly() {
+  document.getElementById('reportModal').classList.remove('show');
+}
+
+function enterFourthLayerReview() {
+  document.getElementById('reportModal').classList.remove('show');
+  document.getElementById('view-quiz').classList.remove('active');
+  document.getElementById('view-review').classList.add('active');
+
+  document.getElementById('review-score-summary').textContent = `總得分：${lastExamResults.score100} 分 ｜ 教檢得分：${lastExamResults.realScore52} / 52 分 ｜ 總答對：${lastExamResults.correctCount} / ${lastExamResults.totalQ} 題`;
+
+  let html = '';
+  questionsData.forEach((q, index) => {
+    const qNum = index + 1;
+    const isStarred = starredQuestions[index];
+    const userAns = userAnswers[index];
+    const isCorrect = (userAns && userAns === q.answer);
+    const cardBorder = isCorrect ? 'border:2px solid var(--primary);' : 'border:2px solid var(--accent);';
+    
+    const domainTag = q.domain || '普通數學';
+    const unitTag = q.unit || '綜合單元';
+    const fullCategoryLabel = `${domainTag} - ${unitTag}`;
+
+    html += `
+      <div class="card" style="${cardBorder} padding:18px; margin-bottom:15px; position:relative;">
+        <div class="q-header-meta" style="flex-wrap:wrap; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span class="q-num">第 ${qNum} 題</span>
+            <span style="background:var(--primary-dark); color:var(--primary); padding:2px 8px; border-radius:4px; font-size:0.78rem; font-weight:bold; border:1px solid var(--primary);">📂 ${fullCategoryLabel}</span>
+            <span style="font-weight:bold; color:${isCorrect ? 'var(--primary)' : 'var(--accent)'};">[ ${isCorrect ? '✅ 答對' : '❌ 答錯'} ]</span>
+          </div>
+          <div>${isStarred ? '⭐ 已標記星號' : '☆'}</div>
+        </div>
+
+        <div class="q-title">${q.stem || '（無題幹）'}</div>
+    `;
+    if (q.svg_code) html += `<div style="text-align:center; margin:12px 0;">${q.svg_code}</div>`;
+    
+    html += `<div class="options">`;
+    ['A', 'B', 'C', 'D'].forEach(optKey => {
+      const optVal = q['opt_' + optKey.toLowerCase()];
+      if (optVal !== undefined && optVal !== null && optVal !== "") {
+        const isSelected = (userAns === optKey);
+        const isRightAnswer = (q.answer === optKey);
+        let optStyle = "";
+        if (isRightAnswer) optStyle = "border-color:var(--primary); background:rgba(78,204,163,0.15); font-weight:bold;";
+        else if (isSelected && !isRightAnswer) optStyle = "border-color:var(--accent); background:rgba(255,107,107,0.15); font-weight:bold;";
+        
+        html += `
+          <div class="opt" style="${optStyle}">
+            <span>(${optKey}) ${optVal}</span>
+          </div>
+        `;
+      }
+    });
+    html += `</div>`;
+
+    html += `
+      <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border-color); font-size:0.88rem;">
+        <p style="color:${isCorrect ? 'var(--primary)' : 'var(--accent)'}; font-weight:bold;">✅ 正確解答：(${q.answer}) ｜ 您的選擇：(${userAns || '未作答'})</p>
+        <p style="margin-top:4px; opacity:0.9;">🤖 <strong>AI 導師解析：</strong> 本題歸屬於「${fullCategoryLabel}」。${isCorrect ? '觀念非常清晰，觀念掌握度滿分！' : '別擔心，這正是我們需要釐清的小盲點。建議回顧對應的單元核心公式，下一次一定能順利拿分！'}</p>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('review-container').innerHTML = html;
+  triggerMathJax();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function triggerMathJax() {
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
+  }
+}
+
+function backToHome() {
+  if(timerInterval) clearInterval(timerInterval);
+  userAnswers = {};
+  starredQuestions = {};
+  lastExamResults = null;
+  document.getElementById('reportModal').classList.remove('show');
+  document.getElementById('alertModal').classList.remove('show');
+  document.getElementById('view-quiz').classList.remove('active');
+  document.getElementById('view-review').classList.remove('active');
+  document.getElementById('view-mode-select').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
