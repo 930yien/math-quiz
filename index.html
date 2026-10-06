@@ -111,12 +111,24 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .mode-card p { color: var(--text-muted); margin-bottom: 12px; font-size: calc(0.9rem * var(--font-scale)); }
 .mode-control select { width: 100%; padding: 9px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--card-bg); color: var(--text-main); font-size: calc(0.92rem * var(--font-scale)); }
 
-/* 複選清單容器樣式 */
-.checkbox-container {
-  max-height: 180px; overflow-y: auto; border: 2px solid var(--border-color); border-radius: 8px; padding: 8px; background: var(--bg-color); text-align: left; margin-bottom: 10px;
+/* ── 點擊彈出式複選下拉選單 ── */
+.dropdown-select-wrapper {
+  position: relative; width: 100%; margin-bottom: 10px;
 }
+.dropdown-toggle-btn {
+  width: 100%; padding: 9px 12px; border: 2px solid var(--border-color); border-radius: 8px;
+  background: var(--card-bg); color: var(--text-main); font-size: calc(0.92rem * var(--font-scale));
+  text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+}
+.dropdown-toggle-btn:hover { border-color: var(--primary); }
+.dropdown-menu-box {
+  position: absolute; top: 105%; left: 0; width: 100%; max-height: 220px; overflow-y: auto;
+  background: var(--card-bg); border: 2px solid var(--primary); border-radius: 8px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4); z-index: 100; padding: 8px; display: none; text-align: left;
+}
+.dropdown-menu-box.show { display: block; }
 .checkbox-item {
-  display: flex; align-items: center; gap: 8px; padding: 5px 6px; cursor: pointer; font-size: calc(0.88rem * var(--font-scale)); border-radius: 4px;
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px; cursor: pointer; font-size: calc(0.85rem * var(--font-scale)); border-radius: 4px;
 }
 .checkbox-item:hover { background: var(--accent-light); }
 .checkbox-item input { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
@@ -187,7 +199,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .gba-grid-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 24px 24px; }
 </style>
 </head>
-<body>
+<body onclick="closeDropdownOutside(event)">
 
 <div class="gba-grid-bg" aria-hidden="true"></div>
 <div class="wave-bg-container" aria-hidden="true"><div class="wave"></div><div class="wave"></div></div>
@@ -244,25 +256,30 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
         </div>
       </div>
 
-      <!-- 單元主題式突破：改為複選清單 -->
+      <!-- 單元主題式突破：改為點擊展開的浮動選單 -->
       <div class="mode-card">
         <div><h3>📚 單元主題式突破（可複選）</h3><p>勾選多個單元或全範圍，系統將自動智慧出題。</p></div>
         <div>
-          <div class="checkbox-container">
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="普通數學"> 📐 普通數學（全範圍）</label>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="教材教法"> 🍎 教材教法（全範圍）</label>
-            <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="n數與量"> 🔹 n數與量</label>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="s空間與形狀"> 🔹 s空間與形狀</label>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="g坐標幾何"> 🔹 g坐標幾何</label>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="r關係"> 🔹 r關係</label>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="a代數"> 🔹 a代數</label>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="f函數"> 🔹 f函數</label>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="d資料與不確定性"> 🔹 d資料與不確定性</label>
-            <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="數學結構與內容"> 🔸 數學結構與內容</label>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="認知與迷思"> 🔸 認知與迷思</label>
-            <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="教學與評量"> 🔸 教學與評量</label>
+          <div class="dropdown-select-wrapper" id="dropdownWrapper">
+            <button type="button" class="dropdown-toggle-btn" onclick="toggleDropdown(event)">
+              <span id="dropdownLabel">請選擇單元（可複選）</span> ▾
+            </button>
+            <div class="dropdown-menu-box" id="dropdownMenu">
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="普通數學" onchange="updateDropdownLabel()"> 📐 普通數學（全範圍）</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="教材教法" onchange="updateDropdownLabel()"> 🍎 教材教法（全範圍）</label>
+              <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="n數與量" onchange="updateDropdownLabel()"> 🔹 n數與量</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="s空間與形狀" onchange="updateDropdownLabel()"> 🔹 s空間與形狀</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="g坐標幾何" onchange="updateDropdownLabel()"> 🔹 g坐標幾何</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="r關係" onchange="updateDropdownLabel()"> 🔹 r關係</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="a代數" onchange="updateDropdownLabel()"> 🔹 a代數</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="f函數" onchange="updateDropdownLabel()"> 🔹 f函數</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="d資料與不確定性" onchange="updateDropdownLabel()"> 🔹 d資料與不確定性</label>
+              <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="數學結構與內容" onchange="updateDropdownLabel()"> 🔸 數學結構與內容</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="認知與迷思" onchange="updateDropdownLabel()"> 🔸 認知與迷思</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="教學與評量" onchange="updateDropdownLabel()"> 🔸 教學與評量</label>
+            </div>
           </div>
           <button class="btn-start" onclick="checkAndInitMultiUnitQuiz()">開始多選單元特訓</button>
         </div>
@@ -375,6 +392,35 @@ let warned10M = false;
 let warned3M = false;
 let pendingSelectedUnits = [];
 
+// 點擊展開／收合浮動勾選清單
+function toggleDropdown(event) {
+  event.stopPropagation();
+  const menu = document.getElementById('dropdownMenu');
+  menu.classList.toggle('show');
+}
+
+// 點擊頁面其他地方自動關閉浮動選單
+function closeDropdownOutside(event) {
+  const wrapper = document.getElementById('dropdownWrapper');
+  if (wrapper && !wrapper.contains(event.target)) {
+    const menu = document.getElementById('dropdownMenu');
+    if (menu) menu.classList.remove('show');
+  }
+}
+
+// 更新按鈕上的已選取項目文字
+function updateDropdownLabel() {
+  const checkboxes = document.querySelectorAll('input[name="unitCheckbox"]:checked');
+  const label = document.getElementById('dropdownLabel');
+  if (checkboxes.length === 0) {
+    label.textContent = "請選擇單元（可複選）";
+  } else if (checkboxes.length === 1) {
+    label.textContent = `已選取：${checkboxes[0].value}`;
+  } else {
+    label.textContent = `已選取 ${checkboxes.length} 個單元`;
+  }
+}
+
 function setFont(fontType) {
   let fontValue = "'Noto Sans TC', sans-serif";
   if (fontType === 'kaishu') fontValue = "'BiauKai', 'KaiTi', 'DFKai-SB', '標楷體', sans-serif";
@@ -405,7 +451,6 @@ function setTheme(themeName) {
   document.getElementById(`btn-${themeName}`).classList.add('active');
 }
 
-// 複選單元攔截與觸發器
 function checkAndInitMultiUnitQuiz() {
   const checkboxes = document.querySelectorAll('input[name="unitCheckbox"]:checked');
   if (checkboxes.length === 0) {
@@ -415,8 +460,6 @@ function checkAndInitMultiUnitQuiz() {
   
   pendingSelectedUnits = Array.from(checkboxes).map(cb => cb.value);
   let valString = pendingSelectedUnits.join(',');
-  
-  // 向 GAS 請求資料以計算符合的總題數
   let targetUrl = `${GAS_API_URL}?mode=unit&val=${encodeURIComponent(valString)}`;
   
   fetch(targetUrl)
@@ -486,7 +529,6 @@ function initQuiz(mode, val) {
         return;
       }
       
-      // 若是單元複選模式且超過 15 題，隨機抽取 15 題
       if (mode === 'unit') {
         data = shuffleArray(data);
         if (data.length > 15) {
