@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>115年度教師檢定數學科複習 - GBA 智慧練功房</title>
-<!-- 引入 8 種精選 Google Fonts 雲端字體 -->
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700&family=Ma+Shan+Zheng&family=Montserrat:wght@500;700&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Noto+Serif+TC:wght@400;600;900&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+<!-- 引入保留的 4 大精選 Google Fonts 與系統明體字型 -->
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
 <!-- 引入 Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- 引入 MathJax 引擎支援正式印刷體 LaTeX 數學公式 -->
@@ -227,17 +227,13 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
       <button class="ctrl-btn" onclick="setTheme('starbucks')" id="btn-starbucks">星巴克</button>
       <button class="ctrl-btn" onclick="setTheme('kfc')" id="btn-kfc">KFC</button>
     </div>
-    <!-- 8 種全系統雲端相容字體選項 -->
+    <!-- 保留的 4 大核心字體切換 -->
     <div class="control-group">
       <span style="color:#fff; font-size:0.7rem;">✒️</span>
       <button class="ctrl-btn active" onclick="setFont('siyuan')" id="font-siyuan">思源黑</button>
       <button class="ctrl-btn" onclick="setFont('songti')" id="font-songti">思源宋</button>
       <button class="ctrl-btn" onclick="setFont('rounded')" id="font-rounded">圓體</button>
-      <button class="ctrl-btn" onclick="setFont('mashanzheng')" id="font-mashanzheng">馬善政</button>
-      <button class="ctrl-btn" onclick="setFont('handwriting')" id="font-handwriting">手寫體</button>
-      <button class="ctrl-btn" onclick="setFont('classicming')" id="font-classicming">經典明</button>
-      <button class="ctrl-btn" onclick="setFont('montserrat')" id="font-montserrat">未來幾何</button>
-      <button class="ctrl-btn" onclick="setFont('lightsans')" id="font-lightsans">知性風</button>
+      <button class="ctrl-btn" onclick="setFont('classicming')" id="font-classicming">經典明體</button>
     </div>
     <div class="control-group">
       <button class="ctrl-btn" onclick="changeFontSize(-1)">A-</button>
@@ -427,23 +423,15 @@ function updateDropdownLabel() {
   }
 }
 
-// 8 種精選字體動態切換
+// 4 大核心精選字體切換函數
 function setFont(fontType) {
   let fontValue = "'Noto Sans TC', sans-serif";
   if (fontType === 'songti') {
     fontValue = "'Noto Serif TC', serif";
   } else if (fontType === 'rounded') {
     fontValue = "'M PLUS Rounded 1c', sans-serif";
-  } else if (fontType === 'mashanzheng') {
-    fontValue = "'Ma Shan Zheng', cursive";
-  } else if (fontType === 'handwriting') {
-    fontValue = "'Zhi Mang Xing', cursive";
   } else if (fontType === 'classicming') {
     fontValue = "'BiauKai', 'KaiTi', 'DFKai-SB', 'Songti TC', 'PMingLiU', serif";
-  } else if (fontType === 'montserrat') {
-    fontValue = "'Montserrat', sans-serif";
-  } else if (fontType === 'lightsans') {
-    fontValue = "'Noto Sans TC', sans-serif";
   }
   
   document.documentElement.style.setProperty('--current-font', fontValue);
