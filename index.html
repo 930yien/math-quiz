@@ -26,6 +26,7 @@
   --header-bg: linear-gradient(135deg, #1f4068, #162447);
   --wave-color: rgba(78, 204, 163, 0.35);
   --crt-scanline: block;     
+  --star-border: 2px solid #ffffff; 
 }
 
 [data-theme="ikea"] {
@@ -41,6 +42,7 @@
   --header-bg: linear-gradient(135deg, #0051ba, #00337c);
   --wave-color: rgba(0, 81, 186, 0.22);
   --crt-scanline: none;
+  --star-border: 2px solid #0051ba;
 }
 
 [data-theme="starbucks"] {
@@ -56,6 +58,7 @@
   --header-bg: linear-gradient(135deg, #006241, #1e3932);
   --wave-color: rgba(0, 98, 65, 0.22);
   --crt-scanline: none;
+  --star-border: 2px solid #006241;
 }
 
 [data-theme="kfc"] {
@@ -71,6 +74,7 @@
   --header-bg: linear-gradient(135deg, #e4002b, #99001b);
   --wave-color: rgba(228, 0, 43, 0.2);
   --crt-scanline: none;
+  --star-border: 2px solid #e4002b;
 }
 
 body {
@@ -168,8 +172,17 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
 }
 .q-num { background: var(--primary); color: #fff; border-radius: 4px; padding: 3px 8px; font-weight: bold; font-size: 0.85rem; }
 .q-status { font-size: 0.85rem; color: var(--text-muted); font-weight: bold; }
-.q-status.done { color: var(--primary); }
-.q-star-badge { background: none; border: none; font-size: 22px; cursor: pointer; margin-left: 8px; }
+
+.q-star-badge { 
+  background: rgba(0,0,0,0.2); 
+  border: var(--star-border); 
+  border-radius: 6px; 
+  width: 32px; height: 32px; 
+  display: flex; align-items: center; justify-content: center; 
+  font-size: 18px; cursor: pointer; 
+  transition: transform 0.2s;
+}
+.q-star-badge:hover { transform: scale(1.1); }
 
 .q-title { font-size: 1.05rem; color: var(--text-main); margin-bottom: 14px; line-height: 1.65; }
 
@@ -246,7 +259,7 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
         <div><h3>📅 歷屆年度精準刷題</h3><p>選擇特定年度教檢試題，完整體驗實戰臨場感。</p></div>
         <div>
           <div class="mode-control"><select id="yearSelect"><option value="115">115 年度</option><option value="114">114 年度</option><option value="113">113 年度</option></select></div>
-          <button class="btn-start" style="margin-top:12px;" onclick="initQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
+          <button class="btn-start" style="margin-top:12px;" onclick="checkAndInitQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
         </div>
       </div>
       <div class="mode-card">
@@ -266,14 +279,14 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
               </optgroup>
             </select>
           </div>
-          <button class="btn-start" style="margin-top:12px;" onclick="initQuiz('unit', document.getElementById('unitSelect').value)">開始單元特訓</button>
+          <button class="btn-start" style="margin-top:12px;" onclick="checkAndInitQuiz('unit', document.getElementById('unitSelect').value)">開始單元特訓</button>
         </div>
       </div>
       <div class="mode-card">
         <div><h3>⚡ 隨機閃電馬拉松</h3><p>隨機抽取指定題數，快速檢驗綜合反應能力。</p></div>
         <div>
           <div class="mode-control"><select id="limitSelect"><option value="5">5 題（閃電快測）</option><option value="10" selected>10 題（標準特訓）</option></select></div>
-          <button class="btn-start accent" style="margin-top:12px;" onclick="initQuiz('random', document.getElementById('limitSelect').value)">開始隨機特訓</button>
+          <button class="btn-start accent" style="margin-top:12px;" onclick="checkAndInitQuiz('random', document.getElementById('limitSelect').value)">開始隨機特訓</button>
         </div>
       </div>
     </div>
@@ -349,12 +362,12 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
   </div>
 </div>
 
-<!-- ==================== 通用系統通知彈跳視窗（提醒與自動交卷） ==================== -->
+<!-- ==================== 通用系統通知彈跳視窗（提醒與自動交卷、全範圍提示） ==================== -->
 <div class="modal-overlay" id="alertModal">
   <div class="modal-content" style="max-width:450px; text-align:center;">
     <h3 id="alert-title" style="color:var(--accent); margin-bottom:12px; font-size:1.2rem;">⚠️ 考試時間提醒</h3>
     <p id="alert-message" style="font-size:0.95rem; line-height:1.6; margin-bottom:20px;"></p>
-    <button class="btn-submit" onclick="closeAlertModal()">我知道了</button>
+    <button class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>
   </div>
 </div>
 
@@ -372,12 +385,37 @@ let currentVal = '';
 let barChartInstance = null;
 let warned10M = false;
 let warned3M = false;
+let pendingQuizArgs = null; // 用於儲存全範圍彈跳視窗確認後執行的參數
 
 function setTheme(themeName) {
   if (themeName === 'default') document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme', themeName);
   document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
   document.getElementById(`btn-${themeName}`).classList.add('active');
+}
+
+// 點擊開始按鈕時的攔截器：若選擇全範圍則跳出指定提示窗
+function checkAndInitQuiz(mode, val) {
+  if (mode === 'unit' && (val === '普通數學' || val === '教材教法')) {
+    pendingQuizArgs = { mode: mode, val: val };
+    document.getElementById('alert-title').textContent = "🎯 全範圍特訓提示";
+    document.getElementById('alert-message').textContent = `本模式只隨機抓符合範圍的 20 題進行測驗，建議多施測幾次可以獲得更完整該單元的練習！`;
+    // 將按鈕改為執行真正載入題目的函數
+    document.getElementById('alert-confirm-btn').setAttribute('onclick', 'confirmAndInitQuiz()');
+    document.getElementById('alertModal').classList.add('show');
+  } else {
+    initQuiz(mode, val);
+  }
+}
+
+function confirmAndInitQuiz() {
+  document.getElementById('alertModal').classList.remove('show');
+  // 恢復預設的按鈕關閉行為
+  document.getElementById('alert-confirm-btn').setAttribute('onclick', 'closeAlertModal()');
+  if (pendingQuizArgs) {
+    initQuiz(pendingQuizArgs.mode, pendingQuizArgs.val);
+    pendingQuizArgs = null;
+  }
 }
 
 function initQuiz(mode, val) {
@@ -389,7 +427,6 @@ function initQuiz(mode, val) {
   warned10M = false;
   warned3M = false;
   
-  // 修復：正確切換視圖，隱藏第一層與第四層，顯示第二層作答區
   document.getElementById('view-mode-select').classList.remove('active');
   document.getElementById('view-review').classList.remove('active');
   document.getElementById('view-quiz').classList.add('active');
@@ -407,9 +444,16 @@ function initQuiz(mode, val) {
     .then(res => res.json())
     .then(data => {
       if (!data || data.length === 0) {
-        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 的欄位是否有對應填寫。</div>';
+        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 的 `domain` 或 `unit` 欄位是否有正確對應填寫。</div>';
         return;
       }
+      
+      // 若是全範圍（普通數學或教材教法），隨機抽樣 20 題
+      if (mode === 'unit' && (val === '普通數學' || val === '教材教法')) {
+        data = shuffleArray(data);
+        data = data.slice(0, 20);
+      }
+
       questionsData = data;
       document.getElementById('total-count').textContent = questionsData.length;
       renderQuiz(questionsData);
@@ -418,7 +462,7 @@ function initQuiz(mode, val) {
     })
     .catch(err => {
       console.error('載入失敗:', err);
-      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查 GAS 網址。</div>';
+      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查 GAS 網址或網路連線。</div>';
     });
 }
 
@@ -534,6 +578,14 @@ function showAlertModal(title, msg) {
 }
 function closeAlertModal() {
   document.getElementById('alertModal').classList.remove('show');
+}
+
+function shuffleArray(array) {
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = array[i]; array[i] = array[j]; array[j] = temp;
+  }
+  return array;
 }
 
 function submitQuiz(isAuto = false) {
