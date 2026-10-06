@@ -8,8 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <!-- 引入 Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- 引入 MathJax 引擎支援正式印刷體 LaTeX 數學公式 -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
-/* ── 全面採用思源黑體與強化的流動波浪視覺變數 ── */
+/* ── 全面採用思源黑體與 110% 舒適字體級距 ── */
 *{box-sizing:border-box;margin:0;padding:0;}
 :root {
   --bg-color: #121620;
@@ -22,7 +24,7 @@
   --text-muted: #b0bac2;
   --border-color: #2f3e55;
   --header-bg: linear-gradient(135deg, #1f4068, #162447);
-  --wave-color: rgba(78, 204, 163, 0.35); /* 電玩主題波浪加深 */
+  --wave-color: rgba(78, 204, 163, 0.35);
   --crt-scanline: block;     
 }
 
@@ -37,7 +39,7 @@
   --text-muted: #555555;
   --border-color: #d0dbe5;
   --header-bg: linear-gradient(135deg, #0051ba, #00337c);
-  --wave-color: rgba(0, 81, 186, 0.22); /* IKEA 波浪更顯著 */
+  --wave-color: rgba(0, 81, 186, 0.22);
   --crt-scanline: none;
 }
 
@@ -52,7 +54,7 @@
   --text-muted: #666666;
   --border-color: #d1dcd6;
   --header-bg: linear-gradient(135deg, #006241, #1e3932);
-  --wave-color: rgba(0, 98, 65, 0.22); /* 星巴克波浪更顯著 */
+  --wave-color: rgba(0, 98, 65, 0.22);
   --crt-scanline: none;
 }
 
@@ -67,7 +69,7 @@
   --text-muted: #666666;
   --border-color: #f1d0d4;
   --header-bg: linear-gradient(135deg, #e4002b, #99001b);
-  --wave-color: rgba(228, 0, 43, 0.2); /* KFC 波浪更顯著 */
+  --wave-color: rgba(228, 0, 43, 0.2);
   --crt-scanline: none;
 }
 
@@ -87,13 +89,13 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
 
 /* ── 放大 100% 且起伏更明顯的流動波浪背景 ── */
 .wave-bg-container {
-  position: fixed; bottom: 0; left: 0; width: 100%; height: 400px; /* 高度放大 100% (從200px變400px) */
+  position: fixed; bottom: 0; left: 0; width: 100%; height: 400px;
   pointer-events: none; z-index: 0; overflow: hidden; opacity: 0.9;
 }
 .wave {
-  position: absolute; bottom: 0; left: 0; width: 250%; height: 180px; /* 增加波浪振幅與寬度 */
+  position: absolute; bottom: 0; left: 0; width: 250%; height: 180px;
   background: var(--wave-color);
-  border-radius: 40% 60% 0 0 / 100% 100% 0 0; /* 更明確起伏的弧度 */
+  border-radius: 40% 60% 0 0 / 100% 100% 0 0;
   animation: waveMotion 7s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
 }
 .wave:nth-child(2) { 
@@ -107,7 +109,6 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
   100% { transform: translateX(-50%) translateY(0); } 
 }
 
-/* ── 響應式排版與 110% 字體層級微調 ── */
 .container { max-width: 920px; margin: 0 auto; padding: 22px 14px 60px; position: relative; z-index: 10; }
 
 .header {
@@ -477,6 +478,11 @@ function renderQuiz(questions, isReviewMode = false) {
   });
 
   document.getElementById('quiz-container').innerHTML = html;
+
+  // 觸發 MathJax 重新渲染數學公式
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
+  }
 }
 
 function toggleStar(index) {
