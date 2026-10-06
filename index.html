@@ -163,7 +163,7 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
 .timer-label { font-size: 0.92rem; }
 .star-panel { background: var(--accent-light); border: 2px solid var(--accent); padding: 5px 10px; border-radius: 6px; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; font-weight: bold; }
 
-/* ── 題目區塊與防混淆標頭 ── */
+/* ── 題目區塊與圖片 60% 微調 ── */
 .q-wrap { background: var(--card-bg); border: 2px solid var(--border-color); border-top: none; padding: 20px; position: relative; }
 .q-header-meta {
   display: flex; justify-content: space-between; align-items: center;
@@ -186,6 +186,16 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
 
 .q-title { font-size: 1.05rem; color: var(--text-main); margin-bottom: 14px; line-height: 1.65; }
 
+/* 多張圖片或 SVG 縮小至 60% 規範 */
+.q-svg-container {
+  text-align: center; margin: 12px 0;
+}
+.q-svg-container svg, .q-svg-container img {
+  max-width: 60% !important; /* 縮小至原圖 60% */
+  height: auto !important;
+  display: inline-block;
+}
+
 .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 @media(max-width:640px){.options{grid-template-columns: 1fr;}}
 .opt { display: flex; align-items: flex-start; gap: 8px; padding: 11px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--bg-color); font-size: 0.95rem; }
@@ -195,7 +205,7 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
 .btn-back-corner { background: var(--accent); color: #fff; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.82rem; }
 .btn-report-corner { background: var(--primary); color: #fff; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.82rem; }
 
-/* ── 彈跳視窗（第三層成效報告與一般系統通知） ── */
+/* ── 彈跳視窗 ── */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 999;
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
@@ -300,7 +310,7 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
       <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
         <div class="answered-label" id="answered-box" style="font-size:0.85rem;">已作答 <span id="ans-count">0</span> / <span id="total-count">0</span> 題</div>
         <button class="btn-report-corner" id="report-trigger-btn" onclick="openReportModal()" style="display:none;">📊 報告</button>
-        <button class="btn-back-corner" onclick="backToHome()">首頁</button>
+        <button class="btn-back-corner" onclick="confirmBackToHome()">首頁</button>
       </div>
     </div>
 
@@ -325,7 +335,7 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
       </div>
       <div style="display:flex; gap:8px;">
         <button class="btn-report-corner" onclick="openReportModal()">📊 打開第三層成效報告</button>
-        <button class="btn-back-corner" onclick="backToHome()">首頁</button>
+        <button class="btn-back-corner" onclick="confirmBackToHome()">首頁</button>
       </div>
     </div>
 
@@ -362,12 +372,14 @@ p, span, label, input, select, button, div { font-family: 'Noto Sans TC', sans-s
   </div>
 </div>
 
-<!-- ==================== 通用系統通知彈跳視窗（提醒與自動交卷、全範圍提示） ==================== -->
+<!-- ==================== 通用系統通知與確認彈跳視窗 ==================== -->
 <div class="modal-overlay" id="alertModal">
   <div class="modal-content" style="max-width:450px; text-align:center;">
-    <h3 id="alert-title" style="color:var(--accent); margin-bottom:12px; font-size:1.2rem;">⚠️ 考試時間提醒</h3>
+    <h3 id="alert-title" style="color:var(--accent); margin-bottom:12px; font-size:1.2rem;">⚠️ 提示</h3>
     <p id="alert-message" style="font-size:0.95rem; line-height:1.6; margin-bottom:20px;"></p>
-    <button class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>
+    <div id="alert-btn-container" style="display:flex; justify-content:center; gap:10px;">
+      <button class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>
+    </div>
   </div>
 </div>
 
@@ -385,7 +397,7 @@ let currentVal = '';
 let barChartInstance = null;
 let warned10M = false;
 let warned3M = false;
-let pendingQuizArgs = null; // 用於儲存全範圍彈跳視窗確認後執行的參數
+let pendingQuizArgs = null;
 
 function setTheme(themeName) {
   if (themeName === 'default') document.documentElement.removeAttribute('data-theme');
@@ -394,14 +406,13 @@ function setTheme(themeName) {
   document.getElementById(`btn-${themeName}`).classList.add('active');
 }
 
-// 點擊開始按鈕時的攔截器：若選擇全範圍則跳出指定提示窗
+// 攔截器：若選擇全範圍則跳出提示窗
 function checkAndInitQuiz(mode, val) {
   if (mode === 'unit' && (val === '普通數學' || val === '教材教法')) {
     pendingQuizArgs = { mode: mode, val: val };
     document.getElementById('alert-title').textContent = "🎯 全範圍特訓提示";
     document.getElementById('alert-message').textContent = `本模式只隨機抓符合範圍的 20 題進行測驗，建議多施測幾次可以獲得更完整該單元的練習！`;
-    // 將按鈕改為執行真正載入題目的函數
-    document.getElementById('alert-confirm-btn').setAttribute('onclick', 'confirmAndInitQuiz()');
+    document.getElementById('alert-btn-container').innerHTML = `<button class="btn-submit" onclick="confirmAndInitQuiz()">了解，開始挑戰</button>`;
     document.getElementById('alertModal').classList.add('show');
   } else {
     initQuiz(mode, val);
@@ -410,8 +421,7 @@ function checkAndInitQuiz(mode, val) {
 
 function confirmAndInitQuiz() {
   document.getElementById('alertModal').classList.remove('show');
-  // 恢復預設的按鈕關閉行為
-  document.getElementById('alert-confirm-btn').setAttribute('onclick', 'closeAlertModal()');
+  document.getElementById('alert-btn-container').innerHTML = `<button class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>`;
   if (pendingQuizArgs) {
     initQuiz(pendingQuizArgs.mode, pendingQuizArgs.val);
     pendingQuizArgs = null;
@@ -426,6 +436,9 @@ function initQuiz(mode, val) {
   lastExamResults = null;
   warned10M = false;
   warned3M = false;
+  
+  // 每次進入第二層時，確實將星星計數歸零
+  document.getElementById('starred-count').textContent = '0';
   
   document.getElementById('view-mode-select').classList.remove('active');
   document.getElementById('view-review').classList.remove('active');
@@ -487,9 +500,13 @@ function renderQuiz(questions) {
           <button type="button" class="q-star-badge" id="star_btn_${index}" onclick="toggleStar(${index})" title="標記疑難題">${isStarred ? '⭐' : '☆'}</button>
         </div>
 
+        <!-- 支援 HTML <br> 換行與非段落式對話呈現 -->
         <div class="q-title">${q.stem || '（無題幹）'}</div>
     `;
-    if (q.svg_code) html += `<div style="text-align:center; margin:12px 0;">${q.svg_code}</div>`;
+    // 多張圖片或 SVG 區塊自動套用 60% 縮放規範
+    if (q.svg_code) {
+      html += `<div class="q-svg-container">${q.svg_code}</div>`;
+    }
     
     html += `<div class="options" data-qindex="${index}">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
@@ -574,10 +591,22 @@ function startTimer() {
 function showAlertModal(title, msg) {
   document.getElementById('alert-title').textContent = title;
   document.getElementById('alert-message').textContent = msg;
+  document.getElementById('alert-btn-container').innerHTML = `<button class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>`;
   document.getElementById('alertModal').classList.add('show');
 }
 function closeAlertModal() {
   document.getElementById('alertModal').classList.remove('show');
+}
+
+// 返回首頁確認彈跳視窗機制
+function confirmBackToHome() {
+  document.getElementById('alert-title').textContent = "⚠️ 返回首頁確認";
+  document.getElementById('alert-message').textContent = "作答、計時會重新開始，是否確認返回首頁？";
+  document.getElementById('alert-btn-container').innerHTML = `
+    <button class="btn-submit" style="background:var(--accent);" onclick="backToHome()">確認返回</button>
+    <button class="btn-submit" onclick="closeAlertModal()">留在作答</button>
+  `;
+  document.getElementById('alertModal').classList.add('show');
 }
 
 function shuffleArray(array) {
@@ -704,7 +733,9 @@ function enterFourthLayerReview() {
 
         <div class="q-title">${q.stem || '（無題幹）'}</div>
     `;
-    if (q.svg_code) html += `<div style="text-align:center; margin:12px 0;">${q.svg_code}</div>`;
+    if (q.svg_code) {
+      html += `<div class="q-svg-container">${q.svg_code}</div>`;
+    }
     
     html += `<div class="options">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
