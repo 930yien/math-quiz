@@ -94,7 +94,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   padding: 4px 12px; border-radius: 14px; color: var(--accent); margin-bottom: 6px; font-weight: bold; font-size: calc(0.78rem * var(--font-scale));
 }
 
-/* ── 行動裝置響應式頂部控制列（支援收納與面板展開） ── */
 .controls-top-bar {
   position: absolute; top: 10px; right: 10px; z-index: 300;
 }
@@ -127,7 +126,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .view-section { display: none; }
 .view-section.active { display: block; }
 
-/* 第一層改為直式流暢長型架構，手機平板完美對齊 */
 .modes-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
 .mode-card {
   background: var(--card-bg); border-radius: 12px; padding: 20px; border: 2px solid var(--border-color);
@@ -137,7 +135,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .mode-card p { color: var(--text-muted); margin-bottom: 12px; font-size: calc(0.9rem * var(--font-scale)); }
 .mode-control select { width: 100%; padding: 11px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--card-bg); color: var(--text-main); font-size: calc(0.95rem * var(--font-scale)); }
 
-/* ── 點擊展開式浮動複選下拉選單 ── */
 .dropdown-select-wrapper {
   position: relative; width: 100%; margin-bottom: 10px;
 }
@@ -244,7 +241,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 </style>
 
 <div class="header">
-  <!-- 行動裝置收納式控制選單 -->
   <div class="controls-top-bar" id="settingsWrapper">
     <button type="button" class="settings-toggle-btn" onclick="toggleSettingsPanel(event)">
       ⚙️ 顯示設定
@@ -282,7 +278,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 
 <div class="container">
 
-  <!-- ==================== 第 1 層：選單（直式長型架構） ==================== -->
+  <!-- ==================== 第 1 層：選單 ==================== -->
   <div id="view-mode-select" class="view-section active">
     <div class="blessing-banner">✨ <strong>展望明年6月：</strong> 教檢一定過！</div>
     <div class="modes-grid">
@@ -429,14 +425,12 @@ let warned10M = false;
 let warned3M = false;
 let pendingSelectedUnits = [];
 
-// 控制面板抽屜開關
 function toggleSettingsPanel(event) {
   event.stopPropagation();
   const panel = document.getElementById('settingsPanel');
   panel.classList.toggle('show');
 }
 
-// 點擊展開／收合浮動複選下拉選單
 function toggleDropdown(event) {
   event.stopPropagation();
   const menu = document.getElementById('dropdownMenu');
@@ -613,28 +607,40 @@ function renderQuiz(questions) {
 
     let stemContent = q.stem || '（無題幹）';
     let svgCodesRaw = q.svg_code ? q.svg_code.split('|||') : [];
+    
+    let hasReplaced = false;
 
-    if (stemContent.includes('[IMAGE')) {
-      svgCodesRaw.forEach((svgPart, sIdx) => {
-        let tagNum = sIdx + 1;
-        let targetTag = `[IMAGE${tagNum}]`;
-        let wrappedSvg = `<div class="q-svg-container">${svgPart.trim()}</div>`;
-        if (stemContent.includes(targetTag)) {
-          stemContent = stemContent.replace(targetTag, wrappedSvg);
-        } else if (sIdx === 0 && stemContent.includes('[IMAGE]')) {
-          stemContent = stemContent.replace('[IMAGE]', wrappedSvg);
+    // ── 嚴格互斥的 3 種圖片渲染邏輯 ──
+    if (svgCodesRaw.length > 0) {
+      // 情況三：檢查是否有編號標籤 [IMAGE1], [IMAGE2]...
+      if (stemContent.includes('[IMAGE1]') || stemContent.includes('[IMAGE2]')) {
+        svgCodesRaw.forEach((svgPart, sIdx) => {
+          let tagNum = sIdx + 1;
+          let targetTag = `[IMAGE${tagNum}]`;
+          let wrappedSvg = `<div class="q-svg-container">${svgPart.trim()}</div>`;
+          if (stemContent.includes(targetTag)) {
+            stemContent = stemContent.split(targetTag).join(wrappedSvg);
+            hasReplaced = true;
+          }
+        });
+      } 
+      // 情況二：檢查是否有單一 [IMAGE] 標籤
+      else if (stemContent.includes('[IMAGE]')) {
+        let wrappedSvg = `<div class="q-svg-container">${svgCodesRaw[0].trim()}</div>`;
+        stemContent = stemContent.split('[IMAGE]').join(wrappedSvg);
+        hasReplaced = true;
+      }
+    }
+
+    // 情況一：如果完全沒有進行文插圖替換，且有 svg_code，則將圖片完整放置在題幹正下方
+    let bottomSvgHtml = '';
+    if (!hasReplaced && svgCodesRaw.length > 0) {
+      svgCodesRaw.forEach(svgPart => {
+        if (svgPart.trim()) {
+          bottomSvgHtml += `<div class="q-svg-container">${svgPart.trim()}</div>`;
         }
       });
     }
-
-    let remainingSvgHtml = '';
-    svgCodesRaw.forEach((svgPart, sIdx) => {
-      let tagNum = sIdx + 1;
-      let targetTag = `[IMAGE${tagNum}]`;
-      if (!stemContent.includes(targetTag) && !stemContent.includes('[IMAGE]')) {
-        remainingSvgHtml += `<div class="q-svg-container">${svgPart.trim()}</div>`;
-      }
-    });
 
     html += `
       <div class="card" style="border:2px solid var(--border-color); padding:18px; margin-bottom:15px; position:relative;">
@@ -648,7 +654,7 @@ function renderQuiz(questions) {
 
         <div class="q-title">${stemContent}</div>
     `;
-    if (remainingSvgHtml) html += remainingSvgHtml;
+    if (bottomSvgHtml) html += bottomSvgHtml;
     
     html += `<div class="options" data-qindex="${index}">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
@@ -863,26 +869,34 @@ function enterFourthLayerReview() {
 
     let stemContent = q.stem || '（無題幹）';
     let svgCodesRaw = q.svg_code ? q.svg_code.split('|||') : [];
-    if (stemContent.includes('[IMAGE')) {
-      svgCodesRaw.forEach((svgPart, sIdx) => {
-        let tagNum = sIdx + 1;
-        let targetTag = `[IMAGE${tagNum}]`;
-        let wrappedSvg = `<div class="q-svg-container">${svgPart.trim()}</div>`;
-        if (stemContent.includes(targetTag)) {
-          stemContent = stemContent.replace(targetTag, wrappedSvg);
-        } else if (sIdx === 0 && stemContent.includes('[IMAGE]')) {
-          stemContent = stemContent.replace('[IMAGE]', wrappedSvg);
+    let hasReplaced = false;
+
+    if (svgCodesRaw.length > 0) {
+      if (stemContent.includes('[IMAGE1]') || stemContent.includes('[IMAGE2]')) {
+        svgCodesRaw.forEach((svgPart, sIdx) => {
+          let tagNum = sIdx + 1;
+          let targetTag = `[IMAGE${tagNum}]`;
+          let wrappedSvg = `<div class="q-svg-container">${svgPart.trim()}</div>`;
+          if (stemContent.includes(targetTag)) {
+            stemContent = stemContent.split(targetTag).join(wrappedSvg);
+            hasReplaced = true;
+          }
+        });
+      } else if (stemContent.includes('[IMAGE]')) {
+        let wrappedSvg = `<div class="q-svg-container">${svgCodesRaw[0].trim()}</div>`;
+        stemContent = stemContent.split('[IMAGE]').join(wrappedSvg);
+        hasReplaced = true;
+      }
+    }
+
+    let bottomSvgHtml = '';
+    if (!hasReplaced && svgCodesRaw.length > 0) {
+      svgCodesRaw.forEach(svgPart => {
+        if (svgPart.trim()) {
+          bottomSvgHtml += `<div class="q-svg-container">${svgPart.trim()}</div>`;
         }
       });
     }
-    let remainingSvgHtml = '';
-    svgCodesRaw.forEach((svgPart, sIdx) => {
-      let tagNum = sIdx + 1;
-      let targetTag = `[IMAGE${tagNum}]`;
-      if (!stemContent.includes(targetTag) && !stemContent.includes('[IMAGE]')) {
-        remainingSvgHtml += `<div class="q-svg-container">${svgPart.trim()}</div>`;
-      }
-    });
 
     html += `
       <div class="card" style="${cardBorder} padding:18px; margin-bottom:15px; position:relative;">
@@ -897,7 +911,7 @@ function enterFourthLayerReview() {
 
         <div class="q-title">${stemContent}</div>
     `;
-    if (remainingSvgHtml) html += remainingSvgHtml;
+    if (bottomSvgHtml) html += bottomSvgHtml;
     
     html += `<div class="options">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
