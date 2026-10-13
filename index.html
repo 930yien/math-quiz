@@ -369,7 +369,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 
 <div class="container">
 
-  <!-- 選單畫面：為所有按鈕與選單加入事件阻止冒泡，確保完美點擊跳轉 -->
+  <!-- 選單畫面 -->
   <div id="view-mode-select" class="view-section active">
     <div class="blessing-banner">✨ <strong>展望明年6月：</strong> 教檢一定過！</div>
     <div class="modes-grid">
@@ -837,8 +837,9 @@ function renderQuiz(questions) {
     
     html += `<div class="options" data-qindex="${index}">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
+      // 確保使用正確且一致的變數名稱 optValRaw
       const optValRaw = q['opt_' + optKey.toLowerCase()];
-      if (optValRaw !== undefined && optVal !== null && optValRaw !== "") {
+      if (optValRaw !== undefined && optValRaw !== null && optValRaw !== "") {
         const isSelected = (userAns === optKey);
         let optStyle = isSelected ? "background:var(--accent-light); border-color:var(--accent); font-weight:bold;" : "";
         const parsedOptContent = parseOptionContent(optValRaw);
@@ -912,7 +913,7 @@ function startTimer() {
     }
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
-      showAlertModal("⏰ 時間到", "考試時間已到, 系統已為您自動交卷！");
+      showAlertModal("⏰ 時間到", "考試時間已到，系統已為您自動交卷！");
       submitQuiz(true);
     }
   }, 1000);
