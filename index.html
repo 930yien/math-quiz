@@ -175,7 +175,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 }
 .mode-card h3 { color: var(--primary); margin-bottom: 6px; font-size: calc(1.15rem * var(--font-scale)); }
 .mode-card p { color: var(--text-muted); margin-bottom: 12px; font-size: calc(0.9rem * var(--font-scale)); }
-.mode-control select { width: 100%; padding: 11px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--card-bg); color: var(--text-main); font-size: calc(0.95rem * var(--font-scale)); }
+.mode-control select { width: 100%; padding: 11px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--card-bg); color: var(--text-main); font-size: calc(0.95rem * var(--font-scale)); cursor: pointer; }
 
 .dropdown-select-wrapper {
   position: relative; width: 100%; margin-bottom: 10px;
@@ -240,7 +240,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .opt { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--bg-color); font-size: calc(0.95rem * var(--font-scale)); color: var(--text-main); }
 .opt.selected { background: var(--accent-light); border-color: var(--accent); font-weight: bold; }
 
-/* 選項內嵌圖片防破版自適應 */
 .opt-img-container { width: 100%; text-align: center; margin-top: 6px; }
 .opt-img-container img, .opt-img-container svg { max-width: 100% !important; max-height: 140px; height: auto !important; display: inline-block; border-radius: 4px; }
 
@@ -371,7 +370,14 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
         <div>
           <div class="mode-control">
             <select id="yearSelect">
-              <option value="">載入年度中...</option>
+              <option value="115">115學年度</option>
+              <option value="114">114學年度</option>
+              <option value="113">113學年度</option>
+              <option value="112">112學年度</option>
+              <option value="111">111學年度</option>
+              <option value="110">110學年度</option>
+              <option value="109">109學年度</option>
+              <option value="108">108學年度</option>
             </select>
           </div>
           <button class="btn-start" style="margin-top:12px;" onclick="initQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
@@ -386,7 +392,16 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
               <span id="dropdownLabel">請選擇單元（可複選）</span> ▾
             </button>
             <div class="dropdown-menu-box" id="dropdownMenu" style="text-align: left; padding: 8px;">
-              <div style="color:var(--text-muted); font-size:0.85rem; padding:4px;">正在從雲端載入單元清單...</div>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="普通數學" onchange="updateDropdownLabel()"> 📐 普通數學（全範圍）</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="教材教法" onchange="updateDropdownLabel()"> 🍎 教材教法（全範圍）</label>
+              <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="n數與量" onchange="updateDropdownLabel()"> 🔹 n數與量</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="s空間與形狀" onchange="updateDropdownLabel()"> 🔹 s空間與形狀</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="g坐標幾何" onchange="updateDropdownLabel()"> 🔹 g坐標幾何</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="r關係" onchange="updateDropdownLabel()"> 🔹 r關係</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="a代數" onchange="updateDropdownLabel()"> 🔹 a代數</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="f函數" onchange="updateDropdownLabel()"> 🔹 f函數</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="d資料與不確定性" onchange="updateDropdownLabel()"> 🔹 d資料與不確定性</label>
             </div>
           </div>
           <button class="btn-start" onclick="checkAndInitMultiUnitQuiz()">開始多選單元特訓</button>
@@ -514,8 +529,6 @@ function loadMetadataFromSheet() {
           if (idx === 0) opt.selected = true;
           yearSelect.appendChild(opt);
         });
-      } else {
-        yearSelect.innerHTML = '<option value="">無可用年度</option>';
       }
 
       const menuBox = document.getElementById('dropdownMenu');
@@ -529,14 +542,10 @@ function loadMetadataFromSheet() {
           unitsHtml += `<label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="${u}" onchange="updateDropdownLabel()"> 🔹 ${u}</label>`;
         });
         menuBox.innerHTML = unitsHtml;
-      } else {
-        menuBox.innerHTML = '<div style="padding:8px; color:var(--text-muted);">找不到單元分類</div>';
       }
     })
     .catch(err => {
-      console.error('載入選單清單失敗:', err);
-      document.getElementById('yearSelect').innerHTML = '<option value="">載入失敗</option>';
-      document.getElementById('dropdownMenu').innerHTML = '<div style="padding:8px; color:var(--accent);">載入失敗，請檢查網路或 GAS</div>';
+      console.log('使用預設年度清單（離線或非同步模式）');
     });
 }
 
@@ -686,7 +695,7 @@ function initQuiz(mode, val) {
     .then(res => res.json())
     .then(data => {
       if (!data || data.length === 0) {
-        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！</div>';
+        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 中是否有該年度資料。</div>';
         return;
       }
       
@@ -705,20 +714,16 @@ function initQuiz(mode, val) {
     })
     .catch(err => {
       console.error('載入失敗:', err);
-      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查 GAS 網址。</div>';
+      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查 GAS 網址或網路連線。</div>';
     });
 }
 
-// 支援選項內部插入圖片或 SVG 的解析器
 function parseOptionContent(optText) {
   if (!optText) return '';
   let text = String(optText);
-  
-  // 檢查是否含有 [IMAGE:圖片網址]
   if (text.includes('[IMAGE:')) {
     text = text.replace(/\[IMAGE:(.*?)\]/g, '<div class="opt-img-container"><img src="$1" alt="選項圖形"></div>');
   }
-  // 檢查是否含有 [SVG:SVG程式碼]
   if (text.includes('[SVG:')) {
     text = text.replace(/\[SVG:(.*?)\]/g, '<div class="opt-img-container">$1</div>');
   }
@@ -892,6 +897,31 @@ function shuffleArray(array) {
   return array;
 }
 
+function generateSmartAICoachFeedback(name, finalScore100, realScore52, totalQ, correctCount, domainStats) {
+  let feedback = `哈囉，${name}！測驗已完成，以下是你的各領域數據診斷：\n\n`;
+  let domainKeys = Object.keys(domainStats);
+  let bestDomain = null, weakestDomain = null;
+  let maxRate = -1, minRate = 101;
+
+  domainKeys.forEach(d => {
+    let stats = domainStats[d];
+    if (stats.total > 0) {
+      let rate = (stats.correct / stats.total) * 100;
+      if (rate > maxRate) { maxRate = rate; bestDomain = d; }
+      if (rate < minRate) { minRate = rate; weakestDomain = d; }
+      feedback += `• 【${d}】答對率：${Math.round(rate)}% (${stats.correct}/${stats.total} 題)\n`;
+    }
+  });
+
+  feedback += `\n🎯 **教檢實戰得分**：${realScore52} / 52 分（共答對 ${correctCount}/${totalQ} 題，換算 100 分制為 ${finalScore100} 分）。\n\n`;
+  if (bestDomain) feedback += `💪 **強項鞏固**：你在【${bestDomain}】展現了穩健的觀念基礎，請保持這個節奏繼續延伸練習！\n`;
+  if (weakestDomain && weakestDomain !== bestDomain && minRate < 80) {
+    feedback += `🔍 **弱點突破**：【${weakestDomain}】目前答對率偏低，建議點擊下方「檢討錯題就上榜」，針對失分題目複習對應的公式與解題邏輯。\n`;
+  }
+  feedback += `\n🌱 **成長型思維叮嚀**：透過本網頁的持續刷題與 AI 導師的拆解陪伴，每一次的錯題都是在幫我們精準排雷。只要確實檢討、穩紮穩打，你的數學實力絕對會倒吃甘蔗，順利上岸！`;
+  return feedback;
+}
+
 function submitQuiz(isAuto = false) {
   const name = document.getElementById('sName').value.trim();
   if (!isAuto && !name) { alert('請輸入您的姓名再交卷！'); document.getElementById('sName').focus(); return; }
@@ -900,7 +930,7 @@ function submitQuiz(isAuto = false) {
   let correctCount = 0;
   const totalQ = questionsData.length;
   const pointsPerQ = 100 / totalQ;
-  let domainStats = { "普通數學": { total: 0, correct: 0 }, "教材教法": { total: 0, correct: 0 } };
+  let domainStats = {};
 
   questionsData.forEach((q, index) => {
     const uAns = userAnswers[index];
@@ -926,13 +956,8 @@ function submitQuiz(isAuto = false) {
 
   renderModernBarChart(domainStats);
 
-  let aiLoveText = finalScore100 >= 85 
-    ? `親愛的 ${name || '同學'}，看到你的成績真的替你感到好驕傲！\n拿到 ${finalScore100} 分（教檢實戰 ${realScore52}/52 分）絕不是偶然，那是你無數個安靜深夜裡對每一題觀念反覆推敲的成果。距離明年 6 月教檢上岸，你已經穩穩踩在最棒的節奏上！`
-    : finalScore100 >= 60
-    ? `嗨，${name || '同學'}！${finalScore100} 分的穩健表現代表你已跨過及格門檻！\n每一個答錯的題目都是在幫我們提前排雷。點擊下方進入「檢討錯題就上榜」，我們一起把觀念補起來，老師會一直陪著你！`
-    : `抱抱你，${name || '同學'}。一次的考不好完全不能定義你的能力，它只是溫馨提醒我們哪些觀念需要被多照顧。別怕，我們有 5 人團隊與 AI 導師陪你拆解觀念，慢慢來，你絕對做得到！`;
-  
-  document.getElementById('ai-coach-content').innerHTML = aiLoveText;
+  let smartFeedback = generateSmartAICoachFeedback(name || '同學', finalScore100, realScore52, totalQ, correctCount, domainStats);
+  document.getElementById('ai-coach-content').innerHTML = smartFeedback;
   document.getElementById('reportModal').classList.add('show');
 
   fetch(GAS_API_URL, {
@@ -1026,10 +1051,20 @@ function enterFourthLayerReview() {
       });
     }
 
-    let shortSummary = q.short_summary || `本題測驗「${fullCategoryLabel}」的核心觀念。`;
-    let step1 = q.step1 || `1. <strong>讀題與題型判斷</strong>：本題屬於「${fullCategoryLabel}」，解題關鍵在於掌握對應的公式與性質。`;
-    let step2 = q.step2 || `2. <strong>逐步計算</strong>：根據題意逐步推導，釐清每一步的計算邏輯。`;
-    let step3 = q.step3 || `3. <strong>得出解答</strong>：核對選項，確認正確答案為 (${q.answer})。`;
+    let isMathDomain = (domainTag.includes('普通數學') || domainTag.includes('數'));
+    let shortSummary = q.short_summary || (isMathDomain ? `本題測驗「${fullCategoryLabel}」的核心運算與性質。` : `本題測驗「${fullCategoryLabel}」的教學實務與理論應用。`);
+    
+    let step1 = q.step1 || (isMathDomain 
+      ? `1. <strong>讀題與題型定位</strong>：本題屬於「${fullCategoryLabel}」，需先釐清已知條件與要求解的數學目標。` 
+      : `1. <strong>關鍵訊息萃取</strong>：從題幹掌握學童常見迷思或教學情境脈絡，對應核心教育學理。`);
+      
+    let step2 = q.step2 || (isMathDomain 
+      ? `2. <strong>逐步計算與分析</strong>：根據定義逐步推導，不跳步驟，確保計算過程嚴密。` 
+      : `2. <strong>教育理論與實務對應</strong>：結合素養導向教學或認知發展階段，評估各選項在教學現場的適切性。`);
+      
+    let step3 = q.step3 || (isMathDomain 
+      ? `3. <strong>得出解答</strong>：核對計算結果，確認正確答案為 (${q.answer})。` 
+      : `3. <strong>最佳解評估</strong>：確認選項 (${q.answer}) 為兼顧學生認知與教學目標的最佳解。`);
 
     html += `
       <div class="review-card" style="${cardBorder}">
