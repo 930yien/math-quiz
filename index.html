@@ -713,8 +713,8 @@ function initQuiz(mode, val) {
       document.getElementById('submit-area-wrap').style.display = 'block';
     })
     .catch(err => {
-      console.error('載入失敗:', err);
-      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查 GAS 網址或網路連線。</div>';
+      console.error('抓取題庫發生例外錯誤:', err);
+      document.getElementById('quiz-container').innerHTML = `<div class="card loading-box">載入題庫發生錯誤：${err.message || '請檢查網路或 GAS 回應格式'}</div>`;
     });
 }
 
