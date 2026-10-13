@@ -79,7 +79,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   100% { transform: translateX(-50%) translateY(0); } 
 }
 
-/* ── 絢麗 GBA 復古流星與火箭噴發開場動畫 ── */
+/* 🚀 絢麗 GBA 復古流星與火箭噴發開場動畫 */
 #intro-overlay {
   position: fixed; inset: 0; background: #080a0f; z-index: 9999;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -220,7 +220,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .q-num { background: var(--primary); color: #fff; border-radius: 4px; padding: 3px 8px; font-weight: bold; font-size: calc(0.85rem * var(--font-scale)); }
 .q-status { font-size: calc(0.85rem * var(--font-scale)); color: var(--text-muted); font-weight: bold; }
 
-/* ── 疑難星號按鈕：完美去除外框，智慧適應 GBA 與淺色主題 ── */
 .q-star-badge { 
   background: transparent; border: none; font-size: 24px; cursor: pointer; 
   transition: transform 0.2s; color: #ffffff; padding: 0; line-height: 1;
@@ -235,10 +234,15 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .q-svg-container { text-align: center; margin: 12px 0; }
 .q-svg-container svg, .q-svg-container img { max-width: 60% !important; height: auto !important; display: inline-block; }
 
+/* ── 選項樣式與防破版 RWD 排版 ── */
 .options { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
 @media(min-width:640px){.options{grid-template-columns: 1fr 1fr;}}
-.opt { display: flex; align-items: flex-start; gap: 8px; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--bg-color); font-size: calc(0.95rem * var(--font-scale)); color: var(--text-main); }
+.opt { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--bg-color); font-size: calc(0.95rem * var(--font-scale)); color: var(--text-main); }
 .opt.selected { background: var(--accent-light); border-color: var(--accent); font-weight: bold; }
+
+/* 選項內嵌圖片防破版自適應 */
+.opt-img-container { width: 100%; text-align: center; margin-top: 6px; }
+.opt-img-container img, .opt-img-container svg { max-width: 100% !important; max-height: 140px; height: auto !important; display: inline-block; border-radius: 4px; }
 
 .btn-submit { background: var(--primary); color: #fff; border: none; padding: 13px 40px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: calc(1rem * var(--font-scale)); width: 100%; }
 @media(min-width:640px){.btn-submit{width: auto;}}
@@ -705,6 +709,22 @@ function initQuiz(mode, val) {
     });
 }
 
+// 支援選項內部插入圖片或 SVG 的解析器
+function parseOptionContent(optText) {
+  if (!optText) return '';
+  let text = String(optText);
+  
+  // 檢查是否含有 [IMAGE:圖片網址]
+  if (text.includes('[IMAGE:')) {
+    text = text.replace(/\[IMAGE:(.*?)\]/g, '<div class="opt-img-container"><img src="$1" alt="選項圖形"></div>');
+  }
+  // 檢查是否含有 [SVG:SVG程式碼]
+  if (text.includes('[SVG:')) {
+    text = text.replace(/\[SVG:(.*?)\]/g, '<div class="opt-img-container">$1</div>');
+  }
+  return text;
+}
+
 function renderQuiz(questions) {
   let html = `
     <div style="background:var(--primary); color:#fff; border-radius:8px 8px 0 0; padding:11px 18px; font-weight:700; font-size:0.92rem;">數學能力測驗（共 ${questions.length} 題）</div>
@@ -763,15 +783,18 @@ function renderQuiz(questions) {
     
     html += `<div class="options" data-qindex="${index}">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
-      const optVal = q['opt_' + optKey.toLowerCase()];
-      if (optVal !== undefined && optVal !== null && optVal !== "") {
+      const optValRaw = q['opt_' + optKey.toLowerCase()];
+      if (optValRaw !== undefined && optVal !== null && optVal !== "") {
         const isSelected = (userAns === optKey);
         let optStyle = isSelected ? "background:var(--accent-light); border-color:var(--accent); font-weight:bold;" : "";
+        const parsedOptContent = parseOptionContent(optValRaw);
         
         html += `
           <label class="opt" style="${optStyle}">
-            <input type="radio" name="q_${index}" value="${optKey}" ${isSelected ? 'checked' : ''} onchange="handleSelect(${index}, '${optKey}')">
-            <span>(${optKey}) ${optVal}</span>
+            <div style="display:flex; align-items:flex-start; gap:8px; width:100%;">
+              <input type="radio" name="q_${index}" value="${optKey}" ${isSelected ? 'checked' : ''} onchange="handleSelect(${index}, '${optKey}')" style="margin-top:4px;">
+              <div style="width:100%;"><span>(${optKey})</span> ${parsedOptContent}</div>
+            </div>
           </label>
         `;
       }
@@ -1025,17 +1048,18 @@ function enterFourthLayerReview() {
     
     html += `<div class="options">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
-      const optVal = q['opt_' + optKey.toLowerCase()];
-      if (optVal !== undefined && optVal !== null && optVal !== "") {
+      const optValRaw = q['opt_' + optKey.toLowerCase()];
+      if (optValRaw !== undefined && optVal !== null && optVal !== "") {
         const isSelected = (userAns === optKey);
         const isRightAnswer = (q.answer === optKey);
         let optStyle = "";
         if (isRightAnswer) optStyle = "border-color:var(--primary); background:rgba(78,204,163,0.15); font-weight:bold;";
         else if (isSelected && !isRightAnswer) optStyle = "border-color:var(--accent); background:rgba(255,107,107,0.15); font-weight:bold;";
-        
+        const parsedOptContent = parseOptionContent(optValRaw);
+
         html += `
           <div class="opt" style="${optStyle}">
-            <span>(${optKey}) ${optVal}</span>
+            <div><span>(${optKey})</span> ${parsedOptContent}</div>
           </div>
         `;
       }
