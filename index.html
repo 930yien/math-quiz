@@ -24,7 +24,6 @@
   --border-color: #2f3e55;
   --header-bg: linear-gradient(135deg, #1f4068, #162447);
   --wave-color: rgba(78, 204, 163, 0.35);
-  --crt-scanline: block;     
   --star-border: 2px solid #ffffff; 
   --current-font: 'Noto Sans TC', sans-serif;
   --font-scale: 1;
@@ -34,19 +33,19 @@
   --bg-color: #f0f4f8; --card-bg: #ffffff; --primary: #0051ba; --primary-dark: #00337c;
   --accent: #ffcc00; --accent-light: #fff5c0; --text-main: #111111; --text-muted: #555555;
   --border-color: #d0dbe5; --header-bg: linear-gradient(135deg, #0051ba, #00337c);
-  --wave-color: rgba(0, 81, 186, 0.22); --crt-scanline: none; --star-border: 2px solid #0051ba;
+  --wave-color: rgba(0, 81, 186, 0.22); --star-border: 2px solid #0051ba;
 }
 [data-theme="starbucks"] {
   --bg-color: #f3f6f4; --card-bg: #ffffff; --primary: #006241; --primary-dark: #1e3932;
   --accent: #cba258; --accent-light: #f1ebd9; --text-main: #1e3932; --text-muted: #666666;
   --border-color: #d1dcd6; --header-bg: linear-gradient(135deg, #006241, #1e3932);
-  --wave-color: rgba(0, 98, 65, 0.22); --crt-scanline: none; --star-border: 2px solid #006241;
+  --wave-color: rgba(0, 98, 65, 0.22); --star-border: 2px solid #006241;
 }
 [data-theme="kfc"] {
   --bg-color: #fff9f9; --card-bg: #ffffff; --primary: #e4002b; --primary-dark: #99001b;
-  --accent: #222222; --accent-light: #ffe6e6; --text-main: #222222; --text-muted: #666666;
+  --accent: #e4002b; --accent-light: #ffe6e6; --text-main: #222222; --text-muted: #666666;
   --border-color: #f1d0d4; --header-bg: linear-gradient(135deg, #e4002b, #99001b);
-  --wave-color: rgba(228, 0, 43, 0.2); --crt-scanline: none; --star-border: 2px solid #e4002b;
+  --wave-color: rgba(228, 0, 43, 0.2); --star-border: 2px solid #e4002b;
 }
 
 body {
@@ -218,14 +217,45 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   width: 100%; max-width: 720px; max-height: 92vh; overflow-y: auto; padding: 22px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.4); text-align: left;
 }
+
+/* ── 成績看板高對比醒目色彩（適應不同主題） ── */
 .score-banner {
   background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff;
-  padding: 16px; border-radius: 10px; text-align: center; margin-bottom: 16px;
+  padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 16px; border: 2px solid var(--accent);
 }
-.score-big { font-size: 2.2rem; font-weight: 900; color: var(--accent); }
+.score-big { font-size: 2.6rem; font-weight: 900; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+[data-theme="ikea"] .score-big { color: #ffcc00; }
+[data-theme="starbucks"] .score-big { color: #f1ebd9; }
+[data-theme="kfc"] .score-big { color: #ffe6e6; }
+
+.real-score-badge {
+  display: inline-block; background: rgba(0,0,0,0.35); padding: 8px 16px; border-radius: 20px;
+  font-size: 1.15rem; font-weight: bold; color: var(--accent); margin-top: 8px; border: 2px dashed var(--accent);
+}
+
 .chart-box-modern { background: var(--bg-color); padding: 12px; border-radius: 8px; border: 2px solid var(--border-color); margin-bottom: 16px; }
 .ai-coach-box { background: var(--accent-light); border: 2px dashed var(--primary); border-radius: 8px; padding: 15px; margin-bottom: 16px; font-size: calc(0.9rem * var(--font-scale)); line-height: 1.75; color: var(--text-main); }
 .ai-coach-title { font-weight: bold; color: var(--primary); margin-bottom: 6px; font-size: calc(1.02rem * var(--font-scale)); }
+
+/* ── 第四層扁平化檢討卡片與折疊詳解 ── */
+.review-card {
+  background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.12); border: 2px solid var(--border-color);
+}
+.accordion-btn {
+  width: 100%; background: var(--accent-light); color: var(--text-main); border: 2px solid var(--primary);
+  padding: 10px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: left;
+  display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 0.92rem;
+}
+.accordion-btn:hover { background: var(--primary); color: #fff; }
+.accordion-content {
+  display: none; background: var(--bg-color); border: 2px solid var(--border-color); border-top: none;
+  border-radius: 0 0 8px 8px; padding: 14px; font-size: 0.9rem; line-height: 1.8; margin-top: -2px;
+}
+.accordion-content.show { display: block; }
+.step-box {
+  background: var(--card-bg); border-left: 4px solid var(--primary); padding: 8px 12px; margin: 8px 0; border-radius: 4px;
+}
 
 .gba-grid-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 24px 24px; }
 </style>
@@ -284,7 +314,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 
 <div class="container">
 
-  <!-- ==================== 第 1 層：選單 ==================== -->
+  <!-- 選單畫面 -->
   <div id="view-mode-select" class="view-section active">
     <div class="blessing-banner">✨ <strong>展望明年6月：</strong> 教檢一定過！</div>
     <div class="modes-grid">
@@ -325,7 +355,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
     </div>
   </div>
 
-  <!-- ==================== 第 2 層：作答引擎 ==================== -->
+  <!-- 作答引擎畫面 -->
   <div id="view-quiz" class="view-section">
     <div class="sticky-bar">
       <div class="timer-label" id="timer-box">⏱ 剩餘時間: <span id="timer">30:00</span></div>
@@ -349,15 +379,15 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
     </div>
   </div>
 
-  <!-- ==================== 第 4 層：詳細錯題與答題紀錄檢討 ==================== -->
+  <!-- 錯題檢討畫面 -->
   <div id="view-review" class="view-section">
     <div class="sticky-bar" style="background:linear-gradient(135deg, var(--primary-dark), var(--primary)); color:#fff;">
       <div>
-        <h3 id="review-title" style="font-size:1rem; margin-bottom:2px;">🔍 第四層：個人化錯題與答題紀錄深度檢討</h3>
+        <h3 id="review-title" style="font-size:1rem; margin-bottom:2px;">🔍 檢討錯題就上榜</h3>
         <p id="review-score-summary" style="font-size:0.85rem; opacity:0.9;"></p>
       </div>
       <div style="display:flex; gap:8px;">
-        <button class="btn-report-corner" onclick="openReportModal()">📊 打開第三層成效報告</button>
+        <button class="btn-report-corner" onclick="openReportModal()">📊 打開成效報告</button>
         <button class="btn-back-corner" onclick="confirmBackToHome()">首頁</button>
       </div>
     </div>
@@ -367,15 +397,15 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 
 </div>
 
-<!-- ==================== 第 3 層：彈跳式成效報告儀表板 ==================== -->
+<!-- 彈跳式成效報告儀表板 -->
 <div class="modal-overlay" id="reportModal">
   <div class="modal-content">
     <div class="score-banner">
-      <h2>📊 第三層：學習成效分析報告</h2>
+      <h2>📊 學習成效分析報告</h2>
       <p id="report-name-info" style="font-size:0.85rem; opacity:0.9; margin-top:3px;"></p>
       <div class="score-big" id="report-score">0 分</div>
-      <p id="report-real-score" style="font-size:1.1rem; font-weight:bold; color:var(--accent); margin-top:4px;"></p>
-      <p id="report-summary" style="font-size:0.9rem; margin-top:6px;"></p>
+      <div class="real-score-badge" id="report-real-score">🎯 數學教檢實戰得分：0 / 52 分</div>
+      <p id="report-summary" style="font-size:0.9rem; margin-top:10px;"></p>
     </div>
 
     <div class="chart-box-modern">
@@ -389,13 +419,13 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
     </div>
 
     <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:14px;">
-      <button class="btn-start accent" onclick="enterFourthLayerReview()" style="flex:1; padding:10px; font-size:0.9rem;">🔍 進入第四層檢討錯題與標籤</button>
+      <button class="btn-start accent" onclick="enterFourthLayerReview()" style="flex:1; padding:10px; font-size:0.9rem;">🔍 檢討錯題就上榜</button>
       <button class="btn-start" onclick="closeReportModalOnly()" style="flex:1; padding:10px; font-size:0.9rem;">關閉視窗</button>
     </div>
   </div>
 </div>
 
-<!-- ==================== 通用系統通知與確認彈跳視窗 ==================== -->
+<!-- 通用系統通知與確認彈跳視窗 -->
 <div class="modal-overlay" id="alertModal">
   <div class="modal-content" style="max-width:450px; text-align:center;">
     <h3 id="alert-title" style="color:var(--accent); margin-bottom:12px; font-size:1.2rem;">⚠️ 提示</h3>
@@ -422,19 +452,17 @@ let warned10M = false;
 let warned3M = false;
 let pendingSelectedUnits = [];
 
-// 頁面載入時自動從 Google Sheet 動態抓取年度與單元清單，並組裝為「OOO學年度」
 function loadMetadataFromSheet() {
   fetch(`${GAS_API_URL}?mode=metadata`)
     .then(res => res.json())
     .then(data => {
-      // 1. 動態填入年度選單，自動呈現為「OOO學年度」
       const yearSelect = document.getElementById('yearSelect');
       if (data.years && data.years.length > 0) {
         yearSelect.innerHTML = '';
         data.years.forEach((yr, idx) => {
           let opt = document.createElement('option');
           opt.value = yr;
-          opt.textContent = `${yr}學年度`; // 自動調整 Wording
+          opt.textContent = `${yr}學年度`;
           if (idx === 0) opt.selected = true;
           yearSelect.appendChild(opt);
         });
@@ -442,7 +470,6 @@ function loadMetadataFromSheet() {
         yearSelect.innerHTML = '<option value="">無可用年度</option>';
       }
 
-      // 2. 動態填入單元複選清單
       const menuBox = document.getElementById('dropdownMenu');
       if (data.units && data.units.length > 0) {
         let unitsHtml = `
@@ -826,7 +853,7 @@ function submitQuiz(isAuto = false) {
   lastExamResults = { name: name || '匿名考生', score100: finalScore100, realScore52, correctCount, totalQ, domainStats };
 
   document.getElementById('report-name-info').textContent = `考生：${name || '匿名考生'} | 模式：${getModeDisplayName(currentMode, currentVal)}`;
-  document.getElementById('report-score').textContent = `100分制換算：${finalScore100} 分`;
+  document.getElementById('report-score').textContent = `${finalScore100} 分`;
   document.getElementById('report-real-score').textContent = `🎯 數學教檢實戰得分：${realScore52} / 52 分（每題 2 分，共答對 ${correctCount} 題）`;
   document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} / ${totalQ} 題。`;
 
@@ -835,7 +862,7 @@ function submitQuiz(isAuto = false) {
   let aiLoveText = finalScore100 >= 85 
     ? `親愛的 ${name || '同學'}，看到你的成績真的替你感到好驕傲！\n拿到 ${finalScore100} 分（教檢實戰 ${realScore52}/52 分）絕不是偶然，那是你無數個安靜深夜裡對每一題觀念反覆推敲的成果。距離明年 6 月教檢上岸，你已經穩穩踩在最棒的節奏上！`
     : finalScore100 >= 60
-    ? `嗨，${name || '同學'}！${finalScore100} 分的穩健表現代表你已跨過及格門檻！\n每一個答錯的題目都是在幫我們提前排雷。點擊下方進入「第四層深度檢討」，我們一起把觀念補起來，老師會一直陪著你！`
+    ? `嗨，${name || '同學'}！${finalScore100} 分的穩健表現代表你已跨過及格門檻！\n每一個答錯的題目都是在幫我們提前排雷。點擊下方進入「檢討錯題就上榜」，我們一起把觀念補起來，老師會一直陪著你！`
     : `抱抱你，${name || '同學'}。一次的考不好完全不能定義你的能力，它只是溫馨提醒我們哪些觀念需要被多照顧。別怕，我們有 5 人團隊與 AI 導師陪你拆解觀念，慢慢來，你絕對做得到！`;
   
   document.getElementById('ai-coach-content').innerHTML = aiLoveText;
@@ -932,8 +959,14 @@ function enterFourthLayerReview() {
       });
     }
 
+    // 建立三步驟黃金詳解拆解邏輯
+    let shortSummary = q.short_summary || `本題測驗「${fullCategoryLabel}」的核心觀念。`;
+    let step1 = q.step1 || `1. <strong>讀題與題型判斷</strong>：本題屬於「${fullCategoryLabel}」，解題關鍵在於掌握對應的公式與性質。`;
+    let step2 = q.step2 || `2. <strong>逐步計算</strong>：根據題意逐步推導，釐清每一步的計算邏輯。`;
+    let step3 = q.step3 || `3. <strong>得出解答</strong>：核對選項，確認正確答案為 (${q.answer})。`;
+
     html += `
-      <div class="card" style="${cardBorder} padding:18px; margin-bottom:15px; position:relative;">
+      <div class="review-card" style="${cardBorder}">
         <div class="q-header-meta" style="flex-wrap:wrap; gap:6px;">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <span class="q-num">第 ${qNum} 題</span>
@@ -967,16 +1000,31 @@ function enterFourthLayerReview() {
     html += `</div>`;
 
     html += `
-      <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border-color); font-size:0.88rem;">
-        <p style="color:${isCorrect ? 'var(--primary)' : 'var(--accent)'}; font-weight:bold;">✅ 正確解答：(${q.answer}) ｜ 您的選擇：(${userAns || '未作答'})</p>
-        <p style="margin-top:4px; opacity:0.9;">🤖 <strong>AI 導師解析：</strong> 本題歸屬於「${fullCategoryLabel}」。${isCorrect ? '觀念非常清晰，觀念掌握度滿分！' : '別擔心，這正是我們需要釐清的小盲點。建議回顧對應的單元核心公式，下一次一定能順利拿分！'}</p>
+      <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border-color);">
+        <p style="color:${isCorrect ? 'var(--primary)' : 'var(--accent)'}; font-weight:bold; font-size:0.95rem;">✅ 正確解答：(${q.answer}) ｜ 您的選擇：(${userAns || '未作答'})</p>
+        <p style="margin-top:6px; font-weight:bold; color:var(--text-main);">💡 核心簡答：${shortSummary}</p>
+        
+        <button type="button" class="accordion-btn" onclick="toggleAccordion(this)">
+          <span>📖 展開完整詳解思路（三步驟拆解）</span> <span>▾</span>
+        </button>
+        <div class="accordion-content">
+          <div class="step-box">${step1}</div>
+          <div class="step-box">${step2}</div>
+          <div class="step-box">${step3}</div>
+        </div>
       </div>
-    `;
+    </div>`;
   });
 
   document.getElementById('review-container').innerHTML = html;
   triggerMathJax();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleAccordion(btn) {
+  const content = btn.nextElementSibling;
+  content.classList.toggle('show');
+  btn.querySelector('span:last-child').textContent = content.classList.contains('show') ? '▴' : '▾';
 }
 
 function triggerMathJax() {
