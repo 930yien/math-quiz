@@ -515,9 +515,13 @@ let warned10M = false;
 let warned3M = false;
 let pendingSelectedUnits = [];
 
+/* 💡 診斷節點一：首頁動態中繼資料載入 */
 function loadMetadataFromSheet() {
   fetch(`${GAS_API_URL}?mode=metadata`)
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP 狀態碼錯誤: ${res.status}`);
+      return res.json();
+    })
     .then(data => {
       const yearSelect = document.getElementById('yearSelect');
       if (data.years && data.years.length > 0) {
@@ -545,7 +549,7 @@ function loadMetadataFromSheet() {
       }
     })
     .catch(err => {
-      console.log('使用預設選單（離線或非同步模式）');
+      console.warn('【節點 1 警告】無法從雲端動態載入選單清單，已自動維持預設選單。原因：', err);
     });
 }
 
@@ -633,10 +637,13 @@ function checkAndInitMultiUnitQuiz() {
   let targetUrl = `${GAS_API_URL}?mode=unit&val=${encodeURIComponent(valString)}`;
   
   fetch(targetUrl)
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`[節點 2] 伺服器回應異常，狀態碼：${res.status}`);
+      return res.json();
+    })
     .then(data => {
       if (!data || data.length === 0) {
-        showAlertModal("⚠️ 找不到試題", "找不到符合勾選條件的試題！請確認 Google Sheet 的 `domain` 或 `unit` 欄位是否有正確填寫。");
+        showAlertModal("⚠️ 找不到試題（節點 3）", `您所勾選的單元（${valString}）在 Google Sheet 的 Questions 分頁中找不到對應試題。請檢查 `domain` 或 `unit` 欄位是否填寫正確！`);
         return;
       }
       
@@ -654,8 +661,8 @@ function checkAndInitMultiUnitQuiz() {
       document.getElementById('alertModal').classList.add('show');
     })
     .catch(err => {
-      console.error('載入失敗:', err);
-      showAlertModal("⚠️ 網路錯誤", "載入題庫發生錯誤，請檢查 GAS 網址或網路連線。");
+      console.error('【節點 2 錯誤】多選單元特訓載入失敗:', err);
+      showAlertModal("⚠️ 系統連線錯誤（節點 2）", `無法順利載入題庫資料。請檢查：\n1. GAS 網址是否正確？\n2. GAS 是否已設為「任何人」存取？\n\n【技術除錯細節】：${err.message}`);
     });
 }
 
@@ -668,6 +675,7 @@ function confirmMultiUnitQuiz() {
   }
 }
 
+/* 💡 診斷節點二與三：測驗模式初始化與資料檢驗 */
 function initQuiz(mode, val) {
   currentMode = mode;
   currentVal = val;
@@ -692,10 +700,21 @@ function initQuiz(mode, val) {
   if(mode === 'random') targetUrl = `${GAS_API_URL}?mode=random&limit=${val}`;
 
   fetch(targetUrl)
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`[節點 2] 伺服器端連線失敗，HTTP 狀態碼：${res.status}`);
+      return res.json();
+    })
     .then(data => {
-      if (!data || data.length === 0) {
-        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 中是否有該年度資料。</div>';
+      /* 💡 診斷節點三：檢查回傳資料是否為空 */
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        document.getElementById('quiz-container').innerHTML = `
+          <div class="card" style="border-color:var(--accent); text-align:center; padding:30px;">
+            <h3 style="color:var(--accent); margin-bottom:10px;">⚠️ 找不到符合條件的試題（診斷節點 3）</h3>
+            <p style="margin-bottom:15px;">伺服器成功連線，但回傳的試題數量為 0。</p>
+            <p style="font-size:0.85rem; color:var(--text-muted);">可能原因：Google Sheet 的 <strong>Questions</strong> 分頁中，找不到與模式 <strong>[${mode}]</strong>、數值 <strong>[${val}]</strong> 吻合的資料列，或是 <code>year</code> 欄位未填寫。</p>
+            <button class="btn-start" style="margin-top:20px; width:auto; display:inline-block; padding:8px 20px;" onclick="backToHome()">返回首頁重新選擇</button>
+          </div>
+        `;
         return;
       }
       
@@ -708,13 +727,30 @@ function initQuiz(mode, val) {
 
       questionsData = data;
       document.getElementById('total-count').textContent = questionsData.length;
-      renderQuiz(questionsData);
+      
+      /* 💡 診斷節點四：前端渲染防禦 */
+      try {
+        renderQuiz(questionsData);
+      } catch (renderErr) {
+        console.error('【節點 4 錯誤】前端渲染試題發生例外:', renderErr);
+        document.getElementById('quiz-container').innerHTML = `<div class="card" style="border-color:var(--accent);">❌ <strong>前端試題渲染錯誤（節點 4）</strong>：${renderErr.message}。<br>請檢查試算表的表頭命名是否正確（需包含 stem, opt_a, opt_b, opt_c, opt_d, answer 等）。</div>`;
+        return;
+      }
+
       startTimer();
       document.getElementById('submit-area-wrap').style.display = 'block';
     })
     .catch(err => {
-      console.error('抓取題庫發生例外錯誤:', err);
-      document.getElementById('quiz-container').innerHTML = `<div class="card loading-box">載入題庫發生錯誤：${err.message || '請檢查網路或 GAS 回應格式'}</div>`;
+      console.error('【節點 2 嚴重錯誤】抓取題庫發生例外:', err);
+      document.getElementById('quiz-container').innerHTML = `
+        <div class="card" style="border-color:var(--accent); padding:25px; text-align:center;">
+          <h3 style="color:var(--accent); margin-bottom:8px;">❌ 載入題庫發生例外錯誤（診斷節點 2）</h3>
+          <p style="margin-bottom:12px; font-size:0.92rem;">無法順利與 Google Apps Script 後端建立資料通訊。</p>
+          <div style="background:var(--bg-color); padding:10px; border-radius:6px; font-family:monospace; font-size:0.82rem; text-align:left; margin-bottom:15px; color:var(--accent);">詳細錯誤訊息：${err.message}</div>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">💡 排查方向：請確認 GAS 網址是否複製完整、權限是否設為「任何人」、或網路連線是否正常。</p>
+          <button class="btn-start" style="width:auto; display:inline-block; padding:8px 20px;" onclick="backToHome()">返回首頁</button>
+        </div>
+      `;
     });
 }
 
