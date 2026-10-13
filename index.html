@@ -293,4 +293,860 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .accordion-btn:hover { background: var(--primary); color: #fff; }
 .accordion-content {
   display: none; background: var(--bg-color); border: 2px solid var(--border-color); border-top: none;
-  border-radius: 0 0 8px 8px; padding: 14px;
+  border-radius: 0 0 8px 8px; padding: 14px; font-size: 0.9rem; line-height: 1.8; margin-top: -2px;
+}
+.accordion-content.show { display: block; }
+.step-box {
+  background: var(--card-bg); border-left: 4px solid var(--primary); padding: 8px 12px; margin: 8px 0; border-radius: 4px;
+}
+
+.gba-grid-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 24px 24px; }
+</style>
+</head>
+<body onclick="closeAllPopups(event)" onload="loadMetadataFromSheet()">
+
+<div class="gba-grid-bg" aria-hidden="true"></div>
+<div class="wave-bg-container" aria-hidden="true"><div class="wave"></div><div class="wave"></div></div>
+
+<!-- 🚀 絢麗 GBA 復古流星與火箭噴發開場動畫 -->
+<div id="intro-overlay">
+  <div class="space-sky">
+    <div class="shooting-star"></div>
+    <div class="shooting-star"></div>
+    <div class="shooting-star"></div>
+  </div>
+  <div class="rocket-launch-box">
+    <div class="rocket-icon">🚀</div>
+    <div style="font-size:13px; letter-spacing:4px; color:#a0aab2; margin-top:8px; font-weight:bold;">▶ GBA 復古街機啟動 ◀</div>
+    <div style="font-size:22px; font-weight:900; color:#4ecca3; margin:6px 0;">國小數學教檢練功房</div>
+    <div style="font-size:14px; color:#ff6b6b; font-weight:bold;">✨ 引擎點火・全速上岸！</div>
+  </div>
+</div>
+
+<div class="header">
+  <div class="controls-top-bar" id="settingsWrapper">
+    <button type="button" class="settings-toggle-btn" onclick="toggleSettingsPanel(event)">
+      ⚙️ 顯示設定
+    </button>
+    <div class="settings-panel" id="settingsPanel" onclick="event.stopPropagation()">
+      <div class="settings-section-title">🎨 視覺主題</div>
+      <div class="settings-row">
+        <button class="ctrl-btn active" onclick="setTheme('default')" id="btn-default">電玩</button>
+        <button class="ctrl-btn" onclick="setTheme('ikea')" id="btn-ikea">IKEA</button>
+        <button class="ctrl-btn" onclick="setTheme('starbucks')" id="btn-starbucks">星巴克</button>
+        <button class="ctrl-btn" onclick="setTheme('kfc')" id="btn-kfc">KFC</button>
+      </div>
+
+      <div class="settings-section-title">✒️ 閱讀字體</div>
+      <div class="settings-row">
+        <button class="ctrl-btn active" onclick="setFont('siyuan')" id="font-siyuan">思源黑</button>
+        <button class="ctrl-btn" onclick="setFont('songti')" id="font-songti">思源宋</button>
+        <button class="ctrl-btn" onclick="setFont('rounded')" id="font-rounded">圓體</button>
+        <button class="ctrl-btn" onclick="setFont('classicming')" id="font-classicming">經典明體</button>
+      </div>
+
+      <div class="settings-section-title">🔍 字體大小</div>
+      <div class="settings-row">
+        <button class="ctrl-btn" onclick="changeFontSize(-1)">A- 縮小</button>
+        <button class="ctrl-btn" onclick="resetFontSize()">重設</button>
+        <button class="ctrl-btn" onclick="changeFontSize(1)">A+ 放大</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-signboard">🟢 營業中 · 24H 數學練功房</div>
+  <h1>🌱 國小教師檢定數學科・智慧練功房</h1>
+  <p>金榜題名，從扎實的每一題開始 🌿</p>
+</div>
+
+<div class="container">
+
+  <!-- 選單畫面 -->
+  <div id="view-mode-select" class="view-section active">
+    <div class="blessing-banner">✨ <strong>展望明年6月：</strong> 教檢一定過！</div>
+    <div class="modes-grid">
+      <div class="mode-card">
+        <div><h3>📅 歷屆年度精準刷題</h3><p>選擇特定年度教檢試題，完整體驗實戰臨場感。</p></div>
+        <div>
+          <div class="mode-control">
+            <select id="yearSelect">
+              <option value="115">115學年度</option>
+              <option value="114">114學年度</option>
+              <option value="113">113學年度</option>
+              <option value="112">112學年度</option>
+              <option value="111">111學年度</option>
+              <option value="110">110學年度</option>
+              <option value="109">109學年度</option>
+              <option value="108">108學年度</option>
+            </select>
+          </div>
+          <button class="btn-start" style="margin-top:12px;" onclick="initQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
+        </div>
+      </div>
+
+      <div class="mode-card">
+        <div><h3>📚 單元主題式突破（可複選）</h3><p>勾選多個單元或全範圍，系統將自動智慧出題。</p></div>
+        <div>
+          <div class="dropdown-select-wrapper" id="dropdownWrapper">
+            <button type="button" class="dropdown-toggle-btn" onclick="toggleDropdown(event)">
+              <span id="dropdownLabel">請選擇單元（可複選）</span> ▾
+            </button>
+            <div class="dropdown-menu-box" id="dropdownMenu" style="text-align: left; padding: 8px;">
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="普通數學" onchange="updateDropdownLabel()"> 📐 普通數學（全範圍）</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="教材教法" onchange="updateDropdownLabel()"> 🍎 教材教法（全範圍）</label>
+              <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="n數與量" onchange="updateDropdownLabel()"> 🔹 n數與量</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="s空間與形狀" onchange="updateDropdownLabel()"> 🔹 s空間與形狀</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="g坐標幾何" onchange="updateDropdownLabel()"> 🔹 g坐標幾何</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="r關係" onchange="updateDropdownLabel()"> 🔹 r關係</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="a代數" onchange="updateDropdownLabel()"> 🔹 a代數</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="f函數" onchange="updateDropdownLabel()"> 🔹 f函數</label>
+              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="d資料與不確定性" onchange="updateDropdownLabel()"> 🔹 d資料與不確定性</label>
+            </div>
+          </div>
+          <button class="btn-start" onclick="checkAndInitMultiUnitQuiz()">開始多選單元特訓</button>
+        </div>
+      </div>
+
+      <div class="mode-card">
+        <div><h3>⚡ 隨機閃電馬拉松</h3><p>隨機抽取指定題數，快速檢驗綜合反應能力。</p></div>
+        <div>
+          <div class="mode-control"><select id="limitSelect"><option value="5">5 題（閃電快測）</option><option value="10" selected>10 題（標準特訓）</option></select></div>
+          <button class="btn-start accent" style="margin-top:12px;" onclick="initQuiz('random', document.getElementById('limitSelect').value)">開始隨機特訓</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 作答引擎畫面 -->
+  <div id="view-quiz" class="view-section">
+    <div class="sticky-bar">
+      <div class="timer-label" id="timer-box">⏱ 剩餘時間: <span id="timer">30:00</span></div>
+      <div class="star-panel">⭐ 疑難星號題：<span id="starred-count">0</span> 題</div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <div class="answered-label" id="answered-box" style="font-size:0.85rem;">已作答 <span id="ans-count">0</span> / <span id="total-count">0</span> 題</div>
+        <button class="btn-report-corner" id="report-trigger-btn" onclick="openReportModal()" style="display:none;">📊 報告</button>
+        <button class="btn-back-corner" onclick="confirmBackToHome()">首頁</button>
+      </div>
+    </div>
+
+    <div class="card" id="student-info-card">
+      <h2>📋 應試基本資料</h2>
+      <div class="form-group"><label for="sName" style="font-size:0.9rem; margin-bottom:4px;">考生姓名</label><input type="text" id="sName" placeholder="請輸入您的姓名" style="width:100%; padding:9px 12px; border:2px solid var(--border-color); border-radius:8px; background:var(--card-bg); color:var(--text-main); font-size:0.95rem;"></div>
+    </div>
+
+    <div id="quiz-container"><div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div></div>
+
+    <div class="submit-area" id="submit-area-wrap" style="display:none; text-align:center; margin-top:22px;">
+      <button class="btn-submit" onclick="submitQuiz()">交卷看成績與分析報告</button>
+    </div>
+  </div>
+
+  <!-- 錯題檢討畫面 -->
+  <div id="view-review" class="view-section">
+    <div class="sticky-bar" style="background:linear-gradient(135deg, var(--primary-dark), var(--primary)); color:#fff;">
+      <div>
+        <h3 id="review-title" style="font-size:1rem; margin-bottom:2px;">🔍 檢討錯題就上榜</h3>
+        <p id="review-score-summary" style="font-size:0.85rem; opacity:0.9;"></p>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-report-corner" onclick="openReportModal()">📊 打開成效報告</button>
+        <button class="btn-back-corner" onclick="confirmBackToHome()">首頁</button>
+      </div>
+    </div>
+
+    <div id="review-container"></div>
+  </div>
+
+</div>
+
+<!-- 彈跳式成效報告儀表板 -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal-content">
+    <div class="score-banner">
+      <h2>📊 學習成效分析報告</h2>
+      <p id="report-name-info" style="font-size:0.85rem; opacity:0.9; margin-top:3px;"></p>
+      <div class="score-big" id="report-score">0 分</div>
+      <div class="real-score-badge" id="report-real-score">🎯 數學教檢實戰得分：0 / 52 分</div>
+      <p id="report-summary" style="font-size:0.9rem; margin-top:10px;"></p>
+    </div>
+
+    <div class="chart-box-modern">
+      <h3 style="color:var(--primary); margin-bottom:8px; font-size:0.95rem;">📈 核心領域得分表現</h3>
+      <div class="chart-container" style="position: relative; height:160px;"><canvas id="modernBarChart"></canvas></div>
+    </div>
+
+    <div class="ai-coach-box">
+      <div class="ai-coach-title">🤖 你的專屬 AI 陪伴導師心裡話</div>
+      <div id="ai-coach-content" style="white-space: pre-line;">正在傾聽你的努力與感受...</div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:14px;">
+      <button class="btn-start accent" onclick="enterFourthLayerReview()" style="flex:1; padding:10px; font-size:0.9rem;">🔍 檢討錯題就上榜</button>
+      <button class="btn-start" onclick="closeReportModalOnly()" style="flex:1; padding:10px; font-size:0.9rem;">關閉視窗</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通用系統通知與確認彈跳視窗 -->
+<div class="modal-overlay" id="alertModal">
+  <div class="modal-content" style="max-width:450px; text-align:center;">
+    <h3 id="alert-title" style="color:var(--accent); margin-bottom:12px; font-size:1.2rem;">⚠️ 提示</h3>
+    <p id="alert-message" style="font-size:0.95rem; line-height:1.6; margin-bottom:20px;"></p>
+    <div id="alert-btn-container" style="display:flex; justify-content:center; gap:10px;">
+      <button class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxRgkjMYYuZntOeeQaTgzU_E9K5gc5KznLniaGgfyre5yeZK7vH_GKbA0t1RyW2O6R4OQ/exec";
+
+let questionsData = [];
+let userAnswers = {};
+let starredQuestions = {}; 
+let lastExamResults = null; 
+let timeLeft = 30 * 60;
+let timerInterval = null;
+let currentMode = '';
+let currentVal = '';
+let barChartInstance = null;
+let warned10M = false;
+let warned3M = false;
+let pendingSelectedUnits = [];
+
+function loadMetadataFromSheet() {
+  fetch(`${GAS_API_URL}?mode=metadata`)
+    .then(res => res.json())
+    .then(data => {
+      const yearSelect = document.getElementById('yearSelect');
+      if (data.years && data.years.length > 0) {
+        yearSelect.innerHTML = '';
+        data.years.forEach((yr, idx) => {
+          let opt = document.createElement('option');
+          opt.value = yr;
+          opt.textContent = `${yr}學年度`;
+          if (idx === 0) opt.selected = true;
+          yearSelect.appendChild(opt);
+        });
+      }
+
+      const menuBox = document.getElementById('dropdownMenu');
+      if (data.units && data.units.length > 0) {
+        let unitsHtml = `
+          <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="普通數學" onchange="updateDropdownLabel()"> 📐 普通數學（全範圍）</label>
+          <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="教材教法" onchange="updateDropdownLabel()"> 🍎 教材教法（全範圍）</label>
+          <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
+        `;
+        data.units.forEach(u => {
+          unitsHtml += `<label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="${u}" onchange="updateDropdownLabel()"> 🔹 ${u}</label>`;
+        });
+        menuBox.innerHTML = unitsHtml;
+      }
+    })
+    .catch(err => {
+      console.log('使用預設選單（離線或非同步模式）');
+    });
+}
+
+function toggleSettingsPanel(event) {
+  event.stopPropagation();
+  const panel = document.getElementById('settingsPanel');
+  panel.classList.toggle('show');
+}
+
+function toggleDropdown(event) {
+  event.stopPropagation();
+  const menu = document.getElementById('dropdownMenu');
+  menu.classList.toggle('show');
+}
+
+function closeAllPopups(event) {
+  const settingsPanel = document.getElementById('settingsPanel');
+  if (settingsPanel && !settingsPanel.contains(event.target)) {
+    settingsPanel.classList.remove('show');
+  }
+  const wrapper = document.getElementById('dropdownWrapper');
+  if (wrapper && !wrapper.contains(event.target)) {
+    const menu = document.getElementById('dropdownMenu');
+    if (menu) menu.classList.remove('show');
+  }
+}
+
+function updateDropdownLabel() {
+  const checkboxes = document.querySelectorAll('input[name="unitCheckbox"]:checked');
+  const label = document.getElementById('dropdownLabel');
+  if (checkboxes.length === 0) {
+    label.textContent = "請選擇單元（可複選）";
+  } else if (checkboxes.length === 1) {
+    label.textContent = `已選取：${checkboxes[0].value}`;
+  } else {
+    label.textContent = `已選取 ${checkboxes.length} 個單元`;
+  }
+}
+
+function setFont(fontType) {
+  let fontValue = "'Noto Sans TC', sans-serif";
+  if (fontType === 'songti') {
+    fontValue = "'Noto Serif TC', serif";
+  } else if (fontType === 'rounded') {
+    fontValue = "'M PLUS Rounded 1c', sans-serif";
+  } else if (fontType === 'classicming') {
+    fontValue = "'BiauKai', 'KaiTi', 'DFKai-SB', 'Songti TC', 'PMingLiU', serif";
+  }
+  
+  document.documentElement.style.setProperty('--current-font', fontValue);
+  document.querySelectorAll('[id^="font-"]').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`font-${fontType}`).classList.add('active');
+}
+
+let fontStep = 0;
+function changeFontSize(direction) {
+  fontStep += direction;
+  if (fontStep > 5) fontStep = 5;
+  if (fontStep < -5) fontStep = -5;
+  document.documentElement.style.setProperty('--font-scale', 1 + (fontStep * 0.1));
+}
+function resetFontSize() {
+  fontStep = 0;
+  document.documentElement.style.setProperty('--font-scale', 1);
+}
+
+function setTheme(themeName) {
+  if (themeName === 'default') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', themeName);
+  document.querySelectorAll('[id^="btn-"]').forEach(btn => {
+    if(btn.id.startsWith('btn-')) btn.classList.remove('active');
+  });
+  document.getElementById(`btn-${themeName}`).classList.add('active');
+}
+
+function checkAndInitMultiUnitQuiz() {
+  const checkboxes = document.querySelectorAll('input[name="unitCheckbox"]:checked');
+  if (checkboxes.length === 0) {
+    showAlertModal("⚠️ 尚未勾選單元", "請至少勾選一個單元或全範圍再開始特訓！");
+    return;
+  }
+  
+  pendingSelectedUnits = Array.from(checkboxes).map(cb => cb.value);
+  let valString = pendingSelectedUnits.join(',');
+  let targetUrl = `${GAS_API_URL}?mode=unit&val=${encodeURIComponent(valString)}`;
+  
+  fetch(targetUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (!data || data.length === 0) {
+        showAlertModal("⚠️ 找不到試題", "找不到符合勾選條件的試題！請確認 Google Sheet 的 `domain` 或 `unit` 欄位是否有正確填寫。");
+        return;
+      }
+      
+      let totalFetched = data.length;
+      let msg = "";
+      if (totalFetched <= 15) {
+        msg = `您所勾選的單元範圍內，總共找到 ${totalFetched} 題，未超過 15 題，故全數列出進行測驗！`;
+      } else {
+        msg = `您所勾選的單元範圍內，總共找到 ${totalFetched} 題，已為您隨機抽取 15 題進行高效特訓！`;
+      }
+      
+      document.getElementById('alert-title').textContent = "🎯 單元特訓題數通知";
+      document.getElementById('alert-message').textContent = msg;
+      document.getElementById('alert-btn-container').innerHTML = `<button class="btn-submit" onclick="confirmMultiUnitQuiz()">了解，開始挑戰</button>`;
+      document.getElementById('alertModal').classList.add('show');
+    })
+    .catch(err => {
+      console.error('載入失敗:', err);
+      showAlertModal("⚠️ 網路錯誤", "載入題庫發生錯誤，請檢查 GAS 網址或網路連線。");
+    });
+}
+
+function confirmMultiUnitQuiz() {
+  document.getElementById('alertModal').classList.remove('show');
+  document.getElementById('alert-btn-container').innerHTML = `<button class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>`;
+  if (pendingSelectedUnits.length > 0) {
+    initQuiz('unit', pendingSelectedUnits.join(','));
+    pendingSelectedUnits = [];
+  }
+}
+
+function initQuiz(mode, val) {
+  currentMode = mode;
+  currentVal = val;
+  userAnswers = {};
+  starredQuestions = {};
+  lastExamResults = null;
+  warned10M = false;
+  warned3M = false;
+  
+  document.getElementById('starred-count').textContent = '0';
+  document.getElementById('view-mode-select').classList.remove('active');
+  document.getElementById('view-review').classList.remove('active');
+  document.getElementById('view-quiz').classList.add('active');
+  
+  document.getElementById('student-info-card').style.display = 'block';
+  document.getElementById('report-trigger-btn').style.display = 'none';
+  document.getElementById('timer-box').style.display = 'block';
+  document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div>';
+  document.getElementById('submit-area-wrap').style.display = 'none';
+
+  let targetUrl = `${GAS_API_URL}?mode=${mode}&val=${encodeURIComponent(val)}`;
+  if(mode === 'random') targetUrl = `${GAS_API_URL}?mode=random&limit=${val}`;
+
+  fetch(targetUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (!data || data.length === 0) {
+        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！請確認 Google Sheet 中是否有該年度資料。</div>';
+        return;
+      }
+      
+      if (mode === 'unit') {
+        data = shuffleArray(data);
+        if (data.length > 15) {
+          data = data.slice(0, 15);
+        }
+      }
+
+      questionsData = data;
+      document.getElementById('total-count').textContent = questionsData.length;
+      renderQuiz(questionsData);
+      startTimer();
+      document.getElementById('submit-area-wrap').style.display = 'block';
+    })
+    .catch(err => {
+      console.error('載入失敗:', err);
+      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查 GAS 網址或網路連線。</div>';
+    });
+}
+
+function parseOptionContent(optText) {
+  if (!optText) return '';
+  let text = String(optText);
+  if (text.includes('[IMAGE:')) {
+    text = text.replace(/\[IMAGE:(.*?)\]/g, '<div class="opt-img-container"><img src="$1" alt="選項圖形"></div>');
+  }
+  if (text.includes('[SVG:')) {
+    text = text.replace(/\[SVG:(.*?)\]/g, '<div class="opt-img-container">$1</div>');
+  }
+  return text;
+}
+
+function renderQuiz(questions) {
+  let html = `
+    <div style="background:var(--primary); color:#fff; border-radius:8px 8px 0 0; padding:11px 18px; font-weight:700; font-size:0.92rem;">數學能力測驗（共 ${questions.length} 題）</div>
+    <div style="background:var(--accent-light); padding:9px 18px; font-size:0.85rem; color:var(--text-main); border:2px solid var(--border-color); border-top:none; margin-bottom:14px;">當前練功模式：${getModeDisplayName(currentMode, currentVal)}</div>
+  `;
+
+  questions.forEach((q, index) => {
+    const qNum = index + 1;
+    const isStarred = starredQuestions[index];
+    const userAns = userAnswers[index];
+
+    let stemContent = q.stem || '（無題幹）';
+    let svgCodesRaw = q.svg_code ? q.svg_code.split('|||') : [];
+    let hasReplaced = false;
+
+    if (svgCodesRaw.length > 0) {
+      if (stemContent.includes('[IMAGE1]') || stemContent.includes('[IMAGE2]')) {
+        svgCodesRaw.forEach((svgPart, sIdx) => {
+          let tagNum = sIdx + 1;
+          let targetTag = `[IMAGE${tagNum}]`;
+          let wrappedSvg = `<div class="q-svg-container">${svgPart.trim()}</div>`;
+          if (stemContent.includes(targetTag)) {
+            stemContent = stemContent.split(targetTag).join(wrappedSvg);
+            hasReplaced = true;
+          }
+        });
+      } else if (stemContent.includes('[IMAGE]')) {
+        let wrappedSvg = `<div class="q-svg-container">${svgCodesRaw[0].trim()}</div>`;
+        stemContent = stemContent.split('[IMAGE]').join(wrappedSvg);
+        hasReplaced = true;
+      }
+    }
+
+    let bottomSvgHtml = '';
+    if (!hasReplaced && svgCodesRaw.length > 0) {
+      svgCodesRaw.forEach(svgPart => {
+        if (svgPart.trim()) {
+          bottomSvgHtml += `<div class="q-svg-container">${svgPart.trim()}</div>`;
+        }
+      });
+    }
+
+    html += `
+      <div class="card" style="border:2px solid var(--border-color); padding:18px; margin-bottom:15px; position:relative;">
+        <div class="q-header-meta">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="q-num">第 ${qNum} 題</span>
+            <span class="q-status ${userAns !== undefined && userAns !== null && userAns !== "" ? 'done' : ''}" id="s${qNum}">${userAns !== undefined && userAns !== null && userAns !== "" ? '已作答' : '未作答'}</span>
+          </div>
+          <button type="button" class="q-star-badge" id="star_btn_${index}" onclick="toggleStar(${index})" title="標記疑難題">${isStarred ? '⭐' : '☆'}</button>
+        </div>
+
+        <div class="q-title">${stemContent}</div>
+    `;
+    if (bottomSvgHtml) html += bottomSvgHtml;
+    
+    html += `<div class="options" data-qindex="${index}">`;
+    ['A', 'B', 'C', 'D'].forEach(optKey => {
+      const optValRaw = q['opt_' + optKey.toLowerCase()];
+      if (optValRaw !== undefined && optVal !== null && optValRaw !== "") {
+        const isSelected = (userAns === optKey);
+        let optStyle = isSelected ? "background:var(--accent-light); border-color:var(--accent); font-weight:bold;" : "";
+        const parsedOptContent = parseOptionContent(optValRaw);
+        
+        html += `
+          <label class="opt" style="${optStyle}">
+            <div style="display:flex; align-items:flex-start; gap:8px; width:100%;">
+              <input type="radio" name="q_${index}" value="${optKey}" ${isSelected ? 'checked' : ''} onchange="handleSelect(${index}, '${optKey}')" style="margin-top:4px;">
+              <div style="width:100%;"><span>(${optKey})</span> ${parsedOptContent}</div>
+            </div>
+          </label>
+        `;
+      }
+    });
+    html += `</div></div>`;
+  });
+
+  document.getElementById('quiz-container').innerHTML = html;
+  triggerMathJax();
+}
+
+function toggleStar(index) {
+  const btn = document.getElementById(`star_btn_${index}`);
+  if (starredQuestions[index]) {
+    delete starredQuestions[index];
+    btn.textContent = "☆";
+  } else {
+    starredQuestions[index] = true;
+    btn.textContent = "⭐";
+  }
+  document.getElementById('starred-count').textContent = Object.keys(starredQuestions).length;
+}
+
+function getModeDisplayName(mode, val) {
+  if (mode === 'year') return `歷屆年度精準刷題：${val}學年度`;
+  if (mode === 'unit') return `單元特訓複選：${val}`;
+  if (mode === 'random') return `隨機閃電馬拉松`;
+  return '綜合練習';
+}
+
+function handleSelect(qIndex, optKey) {
+  userAnswers[qIndex] = optKey;
+  const qNum = qIndex + 1;
+  document.getElementById(`s${qNum}`).textContent = '已作答';
+  document.getElementById(`s${qNum}`).className = 'q-status done';
+
+  document.querySelectorAll(`.options[data-qindex="${qIndex}"] .opt`).forEach(label => {
+    const radio = label.querySelector('input');
+    if (radio.value === optKey) label.classList.add('selected');
+    else label.classList.remove('selected');
+  });
+  document.getElementById('ans-count').textContent = Object.keys(userAnswers).length;
+}
+
+function startTimer() {
+  timeLeft = 30 * 60;
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+    const el = document.getElementById('timer');
+    if(el) el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+
+    if (m === 10 && s === 0 && !warned10M) {
+      warned10M = true;
+      showAlertModal("⏳ 時間提醒", "考試時間剩下 10 分鐘囉！請把握時間檢查未作答的題目。");
+    }
+    if (m === 3 && s === 0 && !warned3M) {
+      warned3M = true;
+      showAlertModal("⚠️ 緊急時間提醒", "考試時間僅剩 3 分鐘！系統即將在時間到時自動交卷。");
+    }
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      showAlertModal("⏰ 時間到", "考試時間已到，系統已為您自動交卷！");
+      submitQuiz(true);
+    }
+  }, 1000);
+}
+
+function showAlertModal(title, msg) {
+  document.getElementById('alert-title').textContent = title;
+  document.getElementById('alert-message').textContent = msg;
+  document.getElementById('alert-btn-container').innerHTML = `<button class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>`;
+  document.getElementById('alertModal').classList.add('show');
+}
+function closeAlertModal() {
+  document.getElementById('alertModal').classList.remove('show');
+}
+
+function confirmBackToHome() {
+  document.getElementById('alert-title').textContent = "⚠️ 返回首頁確認";
+  document.getElementById('alert-message').textContent = "作答、計時會重新開始，是否確認返回首頁？";
+  document.getElementById('alert-btn-container').innerHTML = `
+    <button class="btn-submit" style="background:var(--accent);" onclick="backToHome()">確認返回</button>
+    <button class="btn-submit" onclick="closeAlertModal()">留在作答</button>
+  `;
+  document.getElementById('alertModal').classList.add('show');
+}
+
+function shuffleArray(array) {
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = array[i]; array[i] = array[j]; array[j] = temp;
+  }
+  return array;
+}
+
+function generateSmartAICoachFeedback(name, finalScore100, realScore52, totalQ, correctCount, domainStats) {
+  let feedback = `哈囉，${name}！測驗已完成，以下是你的各領域數據診斷：\n\n`;
+  let domainKeys = Object.keys(domainStats);
+  let bestDomain = null, weakestDomain = null;
+  let maxRate = -1, minRate = 101;
+
+  domainKeys.forEach(d => {
+    let stats = domainStats[d];
+    if (stats.total > 0) {
+      let rate = (stats.correct / stats.total) * 100;
+      if (rate > maxRate) { maxRate = rate; bestDomain = d; }
+      if (rate < minRate) { minRate = rate; weakestDomain = d; }
+      feedback += `• 【${d}】答對率：${Math.round(rate)}% (${stats.correct}/${stats.total} 題)\n`;
+    }
+  });
+
+  feedback += `\n🎯 **教檢實戰得分**：${realScore52} / 52 分（共答對 ${correctCount}/${totalQ} 題，換算 100 分制為 ${finalScore100} 分）。\n\n`;
+  if (bestDomain) feedback += `💪 **強項鞏固**：你在【${bestDomain}】展現了穩健的觀念基礎，請保持這個節奏繼續延伸練習！\n`;
+  if (weakestDomain && weakestDomain !== bestDomain && minRate < 80) {
+    feedback += `🔍 **弱點突破**：【${weakestDomain}】目前答對率偏低，建議點擊下方「檢討錯題就上榜」，針對失分題目複習對應的公式與解題邏輯。\n`;
+  }
+  feedback += `\n🌱 **成長型思維叮嚀**：透過本網頁的持續刷題與 AI 導師的拆解陪伴，每一次的錯題都是在幫我們精準排雷。只要確實檢討、穩紮穩打，你的數學實力絕對會倒吃甘蔗，順利上岸！`;
+  return feedback;
+}
+
+function submitQuiz(isAuto = false) {
+  const name = document.getElementById('sName').value.trim();
+  if (!isAuto && !name) { alert('請輸入您的姓名再交卷！'); document.getElementById('sName').focus(); return; }
+  if (timerInterval) clearInterval(timerInterval);
+
+  let correctCount = 0;
+  const totalQ = questionsData.length;
+  const pointsPerQ = 100 / totalQ;
+  let domainStats = {};
+
+  questionsData.forEach((q, index) => {
+    const uAns = userAnswers[index];
+    const domain = q.domain || '普通數學';
+    if(!domainStats[domain]) domainStats[domain] = { total: 0, correct: 0 };
+    domainStats[domain].total++;
+
+    if (uAns && uAns === q.answer) {
+      correctCount++;
+      domainStats[domain].correct++;
+    }
+  });
+
+  const finalScore100 = Math.round((correctCount * pointsPerQ) * 100) / 100;
+  const realScore52 = correctCount * 2;
+
+  lastExamResults = { name: name || '匿名考生', score100: finalScore100, realScore52, correctCount, totalQ, domainStats };
+
+  document.getElementById('report-name-info').textContent = `考生：${name || '匿名考生'} | 模式：${getModeDisplayName(currentMode, currentVal)}`;
+  document.getElementById('report-score').textContent = `${finalScore100} 分`;
+  document.getElementById('report-real-score').textContent = `🎯 數學教檢實戰得分：${realScore52} / 52 分（每題 2 分，共答對 ${correctCount} 題）`;
+  document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} / ${totalQ} 題。`;
+
+  renderModernBarChart(domainStats);
+
+  let smartFeedback = generateSmartAICoachFeedback(name || '同學', finalScore100, realScore52, totalQ, correctCount, domainStats);
+  document.getElementById('ai-coach-content').innerHTML = smartFeedback;
+  document.getElementById('reportModal').classList.add('show');
+
+  fetch(GAS_API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ studentName: name || '匿名考生', studentId: '無', mode: `${currentMode}_${currentVal}`, score: finalScore100, totalCorrect: correctCount, details: userAnswers })
+  }).catch(() => {});
+}
+
+function renderModernBarChart(domainStats) {
+  const ctx = document.getElementById('modernBarChart').getContext('2d');
+  if(barChartInstance) barChartInstance.destroy();
+
+  const labels = Object.keys(domainStats);
+  const rates = labels.map(d => domainStats[d].total > 0 ? Math.round((domainStats[d].correct / domainStats[d].total) * 100) : 0);
+
+  barChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '答對率 (%)',
+        data: rates,
+        backgroundColor: ['#4ecca3', '#ff6b6b'],
+        borderRadius: 6,
+        barThickness: 28
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, max: 100, ticks: { stepSize: 25 } } }
+    }
+  });
+}
+
+function openReportModal() {
+  document.getElementById('reportModal').classList.add('show');
+}
+
+function closeReportModalOnly() {
+  document.getElementById('reportModal').classList.remove('show');
+}
+
+function enterFourthLayerReview() {
+  document.getElementById('reportModal').classList.remove('show');
+  document.getElementById('view-quiz').classList.remove('active');
+  document.getElementById('view-review').classList.add('active');
+
+  document.getElementById('review-score-summary').textContent = `總得分：${lastExamResults.score100} 分 ｜ 教檢得分：${lastExamResults.realScore52} / 52 分 ｜ 總答對：${lastExamResults.correctCount} / ${lastExamResults.totalQ} 題`;
+
+  let html = '';
+  questionsData.forEach((q, index) => {
+    const qNum = index + 1;
+    const isStarred = starredQuestions[index];
+    const userAns = userAnswers[index];
+    const isCorrect = (userAns && userAns === q.answer);
+    const cardBorder = isCorrect ? 'border:2px solid var(--primary);' : 'border:2px solid var(--accent);';
+    
+    const domainTag = q.domain || '普通數學';
+    const unitTag = q.unit || '綜合單元';
+    const fullCategoryLabel = `${domainTag} - ${unitTag}`;
+
+    let stemContent = q.stem || '（無題幹）';
+    let svgCodesRaw = q.svg_code ? q.svg_code.split('|||') : [];
+    let hasReplaced = false;
+
+    if (svgCodesRaw.length > 0) {
+      if (stemContent.includes('[IMAGE1]') || stemContent.includes('[IMAGE2]')) {
+        svgCodesRaw.forEach((svgPart, sIdx) => {
+          let tagNum = sIdx + 1;
+          let targetTag = `[IMAGE${tagNum}]`;
+          let wrappedSvg = `<div class="q-svg-container">${svgPart.trim()}</div>`;
+          if (stemContent.includes(targetTag)) {
+            stemContent = stemContent.split(targetTag).join(wrappedSvg);
+            hasReplaced = true;
+          }
+        });
+      } else if (stemContent.includes('[IMAGE]')) {
+        let wrappedSvg = `<div class="q-svg-container">${svgCodesRaw[0].trim()}</div>`;
+        stemContent = stemContent.split('[IMAGE]').join(wrappedSvg);
+        hasReplaced = true;
+      }
+    }
+
+    let bottomSvgHtml = '';
+    if (!hasReplaced && svgCodesRaw.length > 0) {
+      svgCodesRaw.forEach(svgPart => {
+        if (svgPart.trim()) {
+          bottomSvgHtml += `<div class="q-svg-container">${svgPart.trim()}</div>`;
+        }
+      });
+    }
+
+    let isMathDomain = (domainTag.includes('普通數學') || domainTag.includes('數'));
+    let shortSummary = q.short_summary || (isMathDomain ? `本題測驗「${fullCategoryLabel}」的核心運算與性質。` : `本題測驗「${fullCategoryLabel}」的教學實務與理論應用。`);
+    
+    let step1 = q.step1 || (isMathDomain 
+      ? `1. <strong>讀題與題型定位</strong>：本題屬於「${fullCategoryLabel}」，需先釐清已知條件與要求解的數學目標。` 
+      : `1. <strong>關鍵訊息萃取</strong>：從題幹掌握學童常見迷思或教學情境脈絡，對應核心教育學理。`);
+      
+    let step2 = q.step2 || (isMathDomain 
+      ? `2. <strong>逐步計算與分析</strong>：根據定義逐步推導，不跳步驟，確保計算過程嚴密。` 
+      : `2. <strong>教育理論與實務對應</strong>：結合素養導向教學或認知發展階段，評估各選項在教學現場的適切性。`);
+      
+    let step3 = q.step3 || (isMathDomain 
+      ? `3. <strong>得出解答</strong>：核對計算結果，確認正確答案為 (${q.answer})。` 
+      : `3. <strong>最佳解評估</strong>：確認選項 (${q.answer}) 為兼顧學生認知與教學目標的最佳解。`);
+
+    html += `
+      <div class="review-card" style="${cardBorder}">
+        <div class="q-header-meta" style="flex-wrap:wrap; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span class="q-num">第 ${qNum} 題</span>
+            <span style="background:var(--primary-dark); color:var(--primary); padding:2px 8px; border-radius:4px; font-size:0.78rem; font-weight:bold; border:1px solid var(--primary);">📂 ${fullCategoryLabel}</span>
+            <span style="font-weight:bold; color:${isCorrect ? 'var(--primary)' : 'var(--accent)'};">[ ${isCorrect ? '✅ 答對' : '❌ 答錯'} ]</span>
+          </div>
+          <div>${isStarred ? '⭐' : '☆'}</div>
+        </div>
+
+        <div class="q-title">${stemContent}</div>
+    `;
+    if (bottomSvgHtml) html += bottomSvgHtml;
+    
+    html += `<div class="options">`;
+    ['A', 'B', 'C', 'D'].forEach(optKey => {
+      const optValRaw = q['opt_' + optKey.toLowerCase()];
+      if (optValRaw !== undefined && optVal !== null && optValRaw !== "") {
+        const isSelected = (userAns === optKey);
+        const isRightAnswer = (q.answer === optKey);
+        let optStyle = "";
+        if (isRightAnswer) optStyle = "border-color:var(--primary); background:rgba(78,204,163,0.15); font-weight:bold;";
+        else if (isSelected && !isRightAnswer) optStyle = "border-color:var(--accent); background:rgba(255,107,107,0.15); font-weight:bold;";
+        const parsedOptContent = parseOptionContent(optValRaw);
+
+        html += `
+          <div class="opt" style="${optStyle}">
+            <div><span>(${optKey})</span> ${parsedOptContent}</div>
+          </div>
+        `;
+      }
+    });
+    html += `</div>`;
+
+    html += `
+      <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border-color);">
+        <p style="color:${isCorrect ? 'var(--primary)' : 'var(--accent)'}; font-weight:bold; font-size:0.95rem;">✅ 正確解答：(${q.answer}) ｜ 您的選擇：(${userAns || '未作答'})</p>
+        <p style="margin-top:6px; font-weight:bold; color:var(--text-main);">💡 核心簡答：${shortSummary}</p>
+        
+        <button type="button" class="accordion-btn" onclick="toggleAccordion(this)">
+          <span>📖 展開完整詳解思路（三步驟拆解）</span> <span>▾</span>
+        </button>
+        <div class="accordion-content">
+          <div class="step-box">${step1}</div>
+          <div class="step-box">${step2}</div>
+          <div class="step-box">${step3}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('review-container').innerHTML = html;
+  triggerMathJax();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleAccordion(btn) {
+  const content = btn.nextElementSibling;
+  content.classList.toggle('show');
+  btn.querySelector('span:last-child').textContent = content.classList.contains('show') ? '▴' : '▾';
+}
+
+function triggerMathJax() {
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
+  }
+}
+
+function backToHome() {
+  if(timerInterval) clearInterval(timerInterval);
+  userAnswers = {};
+  starredQuestions = {};
+  lastExamResults = null;
+  document.getElementById('reportModal').classList.remove('show');
+  document.getElementById('alertModal').classList.remove('show');
+  document.getElementById('view-quiz').classList.remove('active');
+  document.getElementById('view-review').classList.remove('active');
+  document.getElementById('view-mode-select').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
