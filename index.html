@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>115年度教師檢定數學科複習 - GBA 智慧練功房</title>
+<title>教師檢定數學科複習 - GBA 智慧練功房</title>
 <!-- 引入 4 大精選 Google Fonts 與系統明體字型 -->
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
 <!-- 引入 Chart.js -->
@@ -422,19 +422,19 @@ let warned10M = false;
 let warned3M = false;
 let pendingSelectedUnits = [];
 
-// 頁面載入時自動從 Google Sheet 動態抓取年度與單元清單
+// 頁面載入時自動從 Google Sheet 動態抓取年度與單元清單，並組裝為「OOO學年度」
 function loadMetadataFromSheet() {
   fetch(`${GAS_API_URL}?mode=metadata`)
     .then(res => res.json())
     .then(data => {
-      // 1. 動態填入年度選單
+      // 1. 動態填入年度選單，自動呈現為「OOO學年度」
       const yearSelect = document.getElementById('yearSelect');
       if (data.years && data.years.length > 0) {
         yearSelect.innerHTML = '';
         data.years.forEach((yr, idx) => {
           let opt = document.createElement('option');
           opt.value = yr;
-          opt.textContent = `${yr} 年度`;
+          opt.textContent = `${yr}學年度`; // 自動調整 Wording
           if (idx === 0) opt.selected = true;
           yearSelect.appendChild(opt);
         });
@@ -725,7 +725,7 @@ function toggleStar(index) {
 }
 
 function getModeDisplayName(mode, val) {
-  if (mode === 'year') return `歷屆年度精準刷題：${val} 年度`;
+  if (mode === 'year') return `歷屆年度精準刷題：${val}學年度`;
   if (mode === 'unit') return `單元特訓複選：${val}`;
   if (mode === 'random') return `隨機閃電馬拉松`;
   return '綜合練習';
