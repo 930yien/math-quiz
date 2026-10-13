@@ -109,7 +109,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   border: 2px solid var(--primary); border-radius: 12px; padding: 14px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 260px; display: none; text-align: left; z-index: 400;
 }
-.settings-panel.show { display: block; }
+.settings-panel.show { display: block !important; }
 .settings-section-title { font-size: 0.82rem; font-weight: bold; color: var(--primary); margin-bottom: 6px; margin-top: 8px; }
 .settings-section-title:first-child { margin-top: 0; }
 .settings-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -154,7 +154,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   background: var(--card-bg); border: 2px solid var(--primary); border-radius: 8px;
   box-shadow: 0 8px 25px rgba(0,0,0,0.4); z-index: 100; padding: 8px; display: none; text-align: left;
 }
-.dropdown-menu-box.show { display: block; }
+.dropdown-menu-box.show { display: block !important; }
 .checkbox-item {
   display: flex; align-items: center; gap: 8px; padding: 8px; cursor: pointer; font-size: calc(0.9rem * var(--font-scale)); border-radius: 4px;
 }
@@ -477,4 +477,491 @@ function setFont(fontType) {
   }
   
   document.documentElement.style.setProperty('--current-font', fontValue);
-  document.querySelectorAll('[id^="font-"]').forEach(btn => btn.classList.remove
+  document.querySelectorAll('[id^="font-"]').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`font-${fontType}`).classList.add('active');
+}
+
+let fontStep = 0;
+function changeFontSize(direction) {
+  fontStep += direction;
+  if (fontStep > 5) fontStep = 5;
+  if (fontStep < -5) fontStep = -5;
+  document.documentElement.style.setProperty('--font-scale', 1 + (fontStep * 0.1));
+}
+function resetFontSize() {
+  fontStep = 0;
+  document.documentElement.style.setProperty('--font-scale', 1);
+}
+
+function setTheme(themeName) {
+  if (themeName === 'default') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', themeName);
+  document.querySelectorAll('[id^="btn-"]').forEach(btn => {
+    if(btn.id.startsWith('btn-')) btn.classList.remove('active');
+  });
+  document.getElementById(`btn-${themeName}`).classList.add('active');
+}
+
+function checkAndInitMultiUnitQuiz() {
+  const checkboxes = document.querySelectorAll('input[name="unitCheckbox"]:checked');
+  if (checkboxes.length === 0) {
+    showAlertModal("⚠️ 尚未勾選單元", "請至少勾選一個單元或全範圍再開始特訓！");
+    return;
+  }
+  
+  pendingSelectedUnits = Array.from(checkboxes).map(cb => cb.value);
+  let valString = pendingSelectedUnits.join(',');
+  let targetUrl = `${GAS_API_URL}?mode=unit&val=${encodeURIComponent(valString)}`;
+  
+  fetch(targetUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (!data || data.length === 0) {
+        showAlertModal("⚠️ 找不到試題", "找不到符合勾選條件的試題！請確認 Google Sheet 的 `domain` 或 `unit` 欄位是否有正確填寫。");
+        return;
+      }
+      
+      let totalFetched = data.length;
+      let msg = "";
+      if (totalFetched <= 15) {
+        msg = `您所勾選的單元範圍內，總共找到 ${totalFetched} 題，未超過 15 題，故全數列出進行測驗！`;
+      } else {
+        msg = `您所勾選的單元範圍內，總共找到 ${totalFetched} 題，已為您隨機抽取 15 題進行高效特訓！`;
+      }
+      
+      document.getElementById('alert-title').textContent = "🎯 單元特訓題數通知";
+      document.getElementById('alert-message').textContent = msg;
+      document.getElementById('alert-btn-container').innerHTML = `<button class="btn-submit" onclick="confirmMultiUnitQuiz()">了解，開始挑戰</button>`;
+      document.getElementById('alertModal').classList.add('show');
+    })
+    .catch(err => {
+      console.error('載入失敗:', err);
+      showAlertModal("⚠️ 網路錯誤", "載入題庫發生錯誤，請檢查 GAS 網址或網路連線。");
+    });
+}
+
+function confirmMultiUnitQuiz() {
+  document.getElementById('alertModal').classList.remove('show');
+  document.getElementById('alert-btn-container').innerHTML = `<button class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>`;
+  if (pendingSelectedUnits.length > 0) {
+    initQuiz('unit', pendingSelectedUnits.join(','));
+    pendingSelectedUnits = [];
+  }
+}
+
+function initQuiz(mode, val) {
+  currentMode = mode;
+  currentVal = val;
+  userAnswers = {};
+  starredQuestions = {};
+  lastExamResults = null;
+  warned10M = false;
+  warned3M = false;
+  
+  document.getElementById('starred-count').textContent = '0';
+  document.getElementById('view-mode-select').classList.remove('active');
+  document.getElementById('view-review').classList.remove('active');
+  document.getElementById('view-quiz').classList.add('active');
+  
+  document.getElementById('student-info-card').style.display = 'block';
+  document.getElementById('report-trigger-btn').style.display = 'none';
+  document.getElementById('timer-box').style.display = 'block';
+  document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div>';
+  document.getElementById('submit-area-wrap').style.display = 'none';
+
+  let targetUrl = `${GAS_API_URL}?mode=${mode}&val=${encodeURIComponent(val)}`;
+  if(mode === 'random') targetUrl = `${GAS_API_URL}?mode=random&limit=${val}`;
+
+  fetch(targetUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (!data || data.length === 0) {
+        document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">找不到符合條件的試題！</div>';
+        return;
+      }
+      
+      if (mode === 'unit') {
+        data = shuffleArray(data);
+        if (data.length > 15) {
+          data = data.slice(0, 15);
+        }
+      }
+
+      questionsData = data;
+      document.getElementById('total-count').textContent = questionsData.length;
+      renderQuiz(questionsData);
+      startTimer();
+      document.getElementById('submit-area-wrap').style.display = 'block';
+    })
+    .catch(err => {
+      console.error('載入失敗:', err);
+      document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">載入題庫發生錯誤，請檢查 GAS 網址。</div>';
+    });
+}
+
+function renderQuiz(questions) {
+  let html = `
+    <div style="background:var(--primary); color:#fff; border-radius:8px 8px 0 0; padding:11px 18px; font-weight:700; font-size:0.92rem;">數學能力測驗（共 ${questions.length} 題）</div>
+    <div style="background:var(--accent-light); padding:9px 18px; font-size:0.85rem; color:var(--text-main); border:2px solid var(--border-color); border-top:none; margin-bottom:14px;">當前練功模式：${getModeDisplayName(currentMode, currentVal)}</div>
+  `;
+
+  questions.forEach((q, index) => {
+    const qNum = index + 1;
+    const isStarred = starredQuestions[index];
+    const userAns = userAnswers[index];
+
+    let stemContent = q.stem || '（無題幹）';
+    let svgCodesRaw = q.svg_code ? q.svg_code.split('|||') : [];
+    let hasReplaced = false;
+
+    if (svgCodesRaw.length > 0) {
+      if (stemContent.includes('[IMAGE1]') || stemContent.includes('[IMAGE2]')) {
+        svgCodesRaw.forEach((svgPart, sIdx) => {
+          let tagNum = sIdx + 1;
+          let targetTag = `[IMAGE${tagNum}]`;
+          let wrappedSvg = `<div class="q-svg-container">${svgPart.trim()}</div>`;
+          if (stemContent.includes(targetTag)) {
+            stemContent = stemContent.split(targetTag).join(wrappedSvg);
+            hasReplaced = true;
+          }
+        });
+      } else if (stemContent.includes('[IMAGE]')) {
+        let wrappedSvg = `<div class="q-svg-container">${svgCodesRaw[0].trim()}</div>`;
+        stemContent = stemContent.split('[IMAGE]').join(wrappedSvg);
+        hasReplaced = true;
+      }
+    }
+
+    let bottomSvgHtml = '';
+    if (!hasReplaced && svgCodesRaw.length > 0) {
+      svgCodesRaw.forEach(svgPart => {
+        if (svgPart.trim()) {
+          bottomSvgHtml += `<div class="q-svg-container">${svgPart.trim()}</div>`;
+        }
+      });
+    }
+
+    html += `
+      <div class="card" style="border:2px solid var(--border-color); padding:18px; margin-bottom:15px; position:relative;">
+        <div class="q-header-meta">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="q-num">第 ${qNum} 題</span>
+            <span class="q-status ${userAns !== undefined && userAns !== null && userAns !== "" ? 'done' : ''}" id="s${qNum}">${userAns !== undefined && userAns !== null && userAns !== "" ? '已作答' : '未作答'}</span>
+          </div>
+          <button type="button" class="q-star-badge" id="star_btn_${index}" onclick="toggleStar(${index})" title="標記疑難題">${isStarred ? '⭐' : '☆'}</button>
+        </div>
+
+        <div class="q-title">${stemContent}</div>
+    `;
+    if (bottomSvgHtml) html += bottomSvgHtml;
+    
+    html += `<div class="options" data-qindex="${index}">`;
+    ['A', 'B', 'C', 'D'].forEach(optKey => {
+      const optVal = q['opt_' + optKey.toLowerCase()];
+      if (optVal !== undefined && optVal !== null && optVal !== "") {
+        const isSelected = (userAns === optKey);
+        let optStyle = isSelected ? "background:var(--accent-light); border-color:var(--accent); font-weight:bold;" : "";
+        
+        html += `
+          <label class="opt" style="${optStyle}">
+            <input type="radio" name="q_${index}" value="${optKey}" ${isSelected ? 'checked' : ''} onchange="handleSelect(${index}, '${optKey}')">
+            <span>(${optKey}) ${optVal}</span>
+          </label>
+        `;
+      }
+    });
+    html += `</div></div>`;
+  });
+
+  document.getElementById('quiz-container').innerHTML = html;
+  triggerMathJax();
+}
+
+function toggleStar(index) {
+  const btn = document.getElementById(`star_btn_${index}`);
+  if (starredQuestions[index]) {
+    delete starredQuestions[index];
+    btn.textContent = "☆";
+  } else {
+    starredQuestions[index] = true;
+    btn.textContent = "⭐";
+  }
+  document.getElementById('starred-count').textContent = Object.keys(starredQuestions).length;
+}
+
+function getModeDisplayName(mode, val) {
+  if (mode === 'year') return `歷屆年度精準刷題：${val} 年度`;
+  if (mode === 'unit') return `單元特訓複選：${val}`;
+  if (mode === 'random') return `隨機閃電馬拉松`;
+  return '綜合練習';
+}
+
+function handleSelect(qIndex, optKey) {
+  userAnswers[qIndex] = optKey;
+  const qNum = qIndex + 1;
+  document.getElementById(`s${qNum}`).textContent = '已作答';
+  document.getElementById(`s${qNum}`).className = 'q-status done';
+
+  document.querySelectorAll(`.options[data-qindex="${qIndex}"] .opt`).forEach(label => {
+    const radio = label.querySelector('input');
+    if (radio.value === optKey) label.classList.add('selected');
+    else label.classList.remove('selected');
+  });
+  document.getElementById('ans-count').textContent = Object.keys(userAnswers).length;
+}
+
+function startTimer() {
+  timeLeft = 30 * 60;
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+    const el = document.getElementById('timer');
+    if(el) el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+
+    if (m === 10 && s === 0 && !warned10M) {
+      warned10M = true;
+      showAlertModal("⏳ 時間提醒", "考試時間剩下 10 分鐘囉！請把握時間檢查未作答的題目。");
+    }
+    if (m === 3 && s === 0 && !warned3M) {
+      warned3M = true;
+      showAlertModal("⚠️ 緊急時間提醒", "考試時間僅剩 3 分鐘！系統即將在時間到時自動交卷。");
+    }
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      showAlertModal("⏰ 時間到", "考試時間已到，系統已為您自動交卷！");
+      submitQuiz(true);
+    }
+  }, 1000);
+}
+
+function showAlertModal(title, msg) {
+  document.getElementById('alert-title').textContent = title;
+  document.getElementById('alert-message').textContent = msg;
+  document.getElementById('alert-btn-container').innerHTML = `<button class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>`;
+  document.getElementById('alertModal').classList.add('show');
+}
+function closeAlertModal() {
+  document.getElementById('alertModal').classList.remove('show');
+}
+
+function confirmBackToHome() {
+  document.getElementById('alert-title').textContent = "⚠️ 返回首頁確認";
+  document.getElementById('alert-message').textContent = "作答、計時會重新開始，是否確認返回首頁？";
+  document.getElementById('alert-btn-container').innerHTML = `
+    <button class="btn-submit" style="background:var(--accent);" onclick="backToHome()">確認返回</button>
+    <button class="btn-submit" onclick="closeAlertModal()">留在作答</button>
+  `;
+  document.getElementById('alertModal').classList.add('show');
+}
+
+function shuffleArray(array) {
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = array[i]; array[i] = array[j]; array[j] = temp;
+  }
+  return array;
+}
+
+function submitQuiz(isAuto = false) {
+  const name = document.getElementById('sName').value.trim();
+  if (!isAuto && !name) { alert('請輸入您的姓名再交卷！'); document.getElementById('sName').focus(); return; }
+  if (timerInterval) clearInterval(timerInterval);
+
+  let correctCount = 0;
+  const totalQ = questionsData.length;
+  const pointsPerQ = 100 / totalQ;
+  let domainStats = { "普通數學": { total: 0, correct: 0 }, "教材教法": { total: 0, correct: 0 } };
+
+  questionsData.forEach((q, index) => {
+    const uAns = userAnswers[index];
+    const domain = q.domain || '普通數學';
+    if(!domainStats[domain]) domainStats[domain] = { total: 0, correct: 0 };
+    domainStats[domain].total++;
+
+    if (uAns && uAns === q.answer) {
+      correctCount++;
+      domainStats[domain].correct++;
+    }
+  });
+
+  const finalScore100 = Math.round((correctCount * pointsPerQ) * 100) / 100;
+  const realScore52 = correctCount * 2;
+
+  lastExamResults = { name: name || '匿名考生', score100: finalScore100, realScore52, correctCount, totalQ, domainStats };
+
+  document.getElementById('report-name-info').textContent = `考生：${name || '匿名考生'} | 模式：${getModeDisplayName(currentMode, currentVal)}`;
+  document.getElementById('report-score').textContent = `100分制換算：${finalScore100} 分`;
+  document.getElementById('report-real-score').textContent = `🎯 數學教檢實戰得分：${realScore52} / 52 分（每題 2 分，共答對 ${correctCount} 題）`;
+  document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} / ${totalQ} 題。`;
+
+  renderModernBarChart(domainStats);
+
+  let aiLoveText = finalScore100 >= 85 
+    ? `親愛的 ${name || '同學'}，看到你的成績真的替你感到好驕傲！\n拿到 ${finalScore100} 分（教檢實戰 ${realScore52}/52 分）絕不是偶然，那是你無數個安靜深夜裡對每一題觀念反覆推敲的成果。距離明年 6 月教檢上岸，你已經穩穩踩在最棒的節奏上！`
+    : finalScore100 >= 60
+    ? `嗨，${name || '同學'}！${finalScore100} 分的穩健表現代表你已跨過及格門檻！\n每一個答錯的題目都是在幫我們提前排雷。點擊下方進入「第四層深度檢討」，我們一起把觀念補起來，老師會一直陪著你！`
+    : `抱抱你，${name || '同學'}。一次的考不好完全不能定義你的能力，它只是溫馨提醒我們哪些觀念需要被多照顧。別怕，我們有 5 人團隊與 AI 導師陪你拆解觀念，慢慢來，你絕對做得到！`;
+  
+  document.getElementById('ai-coach-content').innerHTML = aiLoveText;
+  document.getElementById('reportModal').classList.add('show');
+
+  fetch(GAS_API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ studentName: name || '匿名考生', studentId: '無', mode: `${currentMode}_${currentVal}`, score: finalScore100, totalCorrect: correctCount, details: userAnswers })
+  }).catch(() => {});
+}
+
+function renderModernBarChart(domainStats) {
+  const ctx = document.getElementById('modernBarChart').getContext('2d');
+  if(barChartInstance) barChartInstance.destroy();
+
+  const labels = Object.keys(domainStats);
+  const rates = labels.map(d => domainStats[d].total > 0 ? Math.round((domainStats[d].correct / domainStats[d].total) * 100) : 0);
+
+  barChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '答對率 (%)',
+        data: rates,
+        backgroundColor: ['#4ecca3', '#ff6b6b'],
+        borderRadius: 6,
+        barThickness: 28
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, max: 100, ticks: { stepSize: 25 } } }
+    }
+  });
+}
+
+function openReportModal() {
+  document.getElementById('reportModal').classList.add('show');
+}
+
+function closeReportModalOnly() {
+  document.getElementById('reportModal').classList.remove('show');
+}
+
+function enterFourthLayerReview() {
+  document.getElementById('reportModal').classList.remove('show');
+  document.getElementById('view-quiz').classList.remove('active');
+  document.getElementById('view-review').classList.add('active');
+
+  document.getElementById('review-score-summary').textContent = `總得分：${lastExamResults.score100} 分 ｜ 教檢得分：${lastExamResults.realScore52} / 52 分 ｜ 總答對：${lastExamResults.correctCount} / ${lastExamResults.totalQ} 題`;
+
+  let html = '';
+  questionsData.forEach((q, index) => {
+    const qNum = index + 1;
+    const isStarred = starredQuestions[index];
+    const userAns = userAnswers[index];
+    const isCorrect = (userAns && userAns === q.answer);
+    const cardBorder = isCorrect ? 'border:2px solid var(--primary);' : 'border:2px solid var(--accent);';
+    
+    const domainTag = q.domain || '普通數學';
+    const unitTag = q.unit || '綜合單元';
+    const fullCategoryLabel = `${domainTag} - ${unitTag}`;
+
+    let stemContent = q.stem || '（無題幹）';
+    let svgCodesRaw = q.svg_code ? q.svg_code.split('|||') : [];
+    let hasReplaced = false;
+
+    if (svgCodesRaw.length > 0) {
+      if (stemContent.includes('[IMAGE1]') || stemContent.includes('[IMAGE2]')) {
+        svgCodesRaw.forEach((svgPart, sIdx) => {
+          let tagNum = sIdx + 1;
+          let targetTag = `[IMAGE${tagNum}]`;
+          let wrappedSvg = `<div class="q-svg-container">${svgPart.trim()}</div>`;
+          if (stemContent.includes(targetTag)) {
+            stemContent = stemContent.split(targetTag).join(wrappedSvg);
+            hasReplaced = true;
+          }
+        });
+      } else if (stemContent.includes('[IMAGE]')) {
+        let wrappedSvg = `<div class="q-svg-container">${svgCodesRaw[0].trim()}</div>`;
+        stemContent = stemContent.split('[IMAGE]').join(wrappedSvg);
+        hasReplaced = true;
+      }
+    }
+
+    let bottomSvgHtml = '';
+    if (!hasReplaced && svgCodesRaw.length > 0) {
+      svgCodesRaw.forEach(svgPart => {
+        if (svgPart.trim()) {
+          bottomSvgHtml += `<div class="q-svg-container">${svgPart.trim()}</div>`;
+        }
+      });
+    }
+
+    html += `
+      <div class="card" style="${cardBorder} padding:18px; margin-bottom:15px; position:relative;">
+        <div class="q-header-meta" style="flex-wrap:wrap; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span class="q-num">第 ${qNum} 題</span>
+            <span style="background:var(--primary-dark); color:var(--primary); padding:2px 8px; border-radius:4px; font-size:0.78rem; font-weight:bold; border:1px solid var(--primary);">📂 ${fullCategoryLabel}</span>
+            <span style="font-weight:bold; color:${isCorrect ? 'var(--primary)' : 'var(--accent)'};">[ ${isCorrect ? '✅ 答對' : '❌ 答錯'} ]</span>
+          </div>
+          <div>${isStarred ? '⭐ 已標記星號' : '☆'}</div>
+        </div>
+
+        <div class="q-title">${stemContent}</div>
+    `;
+    if (bottomSvgHtml) html += bottomSvgHtml;
+    
+    html += `<div class="options">`;
+    ['A', 'B', 'C', 'D'].forEach(optKey => {
+      const optVal = q['opt_' + optKey.toLowerCase()];
+      if (optVal !== undefined && optVal !== null && optVal !== "") {
+        const isSelected = (userAns === optKey);
+        const isRightAnswer = (q.answer === optKey);
+        let optStyle = "";
+        if (isRightAnswer) optStyle = "border-color:var(--primary); background:rgba(78,204,163,0.15); font-weight:bold;";
+        else if (isSelected && !isRightAnswer) optStyle = "border-color:var(--accent); background:rgba(255,107,107,0.15); font-weight:bold;";
+        
+        html += `
+          <div class="opt" style="${optStyle}">
+            <span>(${optKey}) ${optVal}</span>
+          </div>
+        `;
+      }
+    });
+    html += `</div>`;
+
+    html += `
+      <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border-color); font-size:0.88rem;">
+        <p style="color:${isCorrect ? 'var(--primary)' : 'var(--accent)'}; font-weight:bold;">✅ 正確解答：(${q.answer}) ｜ 您的選擇：(${userAns || '未作答'})</p>
+        <p style="margin-top:4px; opacity:0.9;">🤖 <strong>AI 導師解析：</strong> 本題歸屬於「${fullCategoryLabel}」。${isCorrect ? '觀念非常清晰，觀念掌握度滿分！' : '別擔心，這正是我們需要釐清的小盲點。建議回顧對應的單元核心公式，下一次一定能順利拿分！'}</p>
+      </div>
+    `;
+  });
+
+  document.getElementById('review-container').innerHTML = html;
+  triggerMathJax();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function triggerMathJax() {
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
+  }
+}
+
+function backToHome() {
+  if(timerInterval) clearInterval(timerInterval);
+  userAnswers = {};
+  starredQuestions = {};
+  lastExamResults = null;
+  document.getElementById('reportModal').classList.remove('show');
+  document.getElementById('alertModal').classList.remove('show');
+  document.getElementById('view-quiz').classList.remove('active');
+  document.getElementById('view-review').classList.remove('active');
+  document.getElementById('view-mode-select').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
