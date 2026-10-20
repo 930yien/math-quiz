@@ -767,7 +767,7 @@ function initQuiz(mode, val) {
     });
 }
 
-/* 💡 解析 `svg_code` 並智慧對應標籤 (stem1:, stem2:, OPT_A:, 等) */
+/* 💡 智慧解析 svg_code：支援 stem1:, stem2:, OPT_A:, OPT_B: 標籤與 ||| 隔開 */
 function parseSvgCode(svgCodeStr) {
   let stemMap = {};
   let optMap = {};
@@ -779,11 +779,10 @@ function parseSvgCode(svgCodeStr) {
   parts.forEach(part => {
     let upper = part.toUpperCase();
     if (upper.startsWith('STEM')) {
-      // 例如：stem1:<svg>...</svg>
       let colonIdx = part.indexOf(':');
       if (colonIdx !== -1) {
-        let key = part.substring(0, colonIdx).trim().toLowerCase(); // "stem1"
-        let numMatch = key.replace(/\D/g, ''); // "1"
+        let key = part.substring(0, colonIdx).trim().toLowerCase();
+        let numMatch = key.replace(/\D/g, '');
         let content = part.substring(colonIdx + 1).trim();
         if (numMatch) stemMap[numMatch] = content;
         else defaultList.push(content);
@@ -791,10 +790,9 @@ function parseSvgCode(svgCodeStr) {
         defaultList.push(part);
       }
     } else if (upper.startsWith('OPT_')) {
-      // 例如：OPT_C:<svg>...</svg>
       let colonIdx = part.indexOf(':');
       if (colonIdx !== -1) {
-        let optLetter = part.substring(4, colonIdx).trim().toUpperCase(); // "C"
+        let optLetter = part.substring(4, colonIdx).trim().toUpperCase();
         let content = part.substring(colonIdx + 1).trim();
         optMap[optLetter] = content;
       } else {
@@ -813,7 +811,6 @@ function parseOptionContent(optText, q, optKey) {
   let text = String(optText);
   let parsedSvg = parseSvgCode(q.svg_code);
 
-  // 1. 檢查選項是否包含 [IMG] 或 [IMAGE]
   if (text.includes('[IMG]') || text.includes('[IMAGE]')) {
     let optSvg = parsedSvg.optMap[optKey] || '';
     if (!optSvg && parsedSvg.defaultList.length > 0) {
@@ -824,7 +821,7 @@ function parseOptionContent(optText, q, optKey) {
     if (optSvg) {
       let displaySvg = optSvg;
       if (!displaySvg.startsWith('<') && !displaySvg.startsWith('http')) {
-        // 純文字或網址
+        // 文字
       } else if (!displaySvg.startsWith('<')) {
         displaySvg = `<img src="${displaySvg}" alt="選項圖形">`;
       }
@@ -832,7 +829,6 @@ function parseOptionContent(optText, q, optKey) {
     }
   }
 
-  // 2. 舊格式兼容
   if (text.includes('[IMAGE:')) {
     text = text.replace(/\[IMAGE:(.*?)\]/g, '<div class="opt-img-container"><img src="$1" alt="選項圖形"></div>');
   }
@@ -858,7 +854,6 @@ function renderQuiz(questions) {
     let parsedSvg = parseSvgCode(q.svg_code);
     let hasReplaced = false;
 
-    // 替換題幹中的 [IMAGE1], [IMAGE2] 或 [IMAGE]
     Object.keys(parsedSvg.stemMap).forEach(num => {
       let targetTag = `[IMAGE${num}]`;
       let targetTag2 = `[STEM${num}]`;
@@ -906,7 +901,7 @@ function renderQuiz(questions) {
     html += `<div class="options" data-qindex="${index}">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
       const optValRaw = q['opt_' + optKey.toLowerCase()];
-      if (optValRaw !== undefined && optVal !== null && optValRaw !== "") {
+      if (optValRaw !== undefined && optValRaw !== null && optValRaw !== "") {
         const isSelected = (userAns === optKey);
         let optStyle = isSelected ? "background:var(--accent-light); border-color:var(--accent); font-weight:bold;" : "";
         const parsedOptContent = parseOptionContent(optValRaw, q, optKey);
@@ -915,7 +910,7 @@ function renderQuiz(questions) {
           <label class="opt" style="${optStyle}">
             <div style="display:flex; align-items:flex-start; gap:8px; width:100%;">
               <input type="radio" name="q_${index}" value="${optKey}" ${isSelected ? 'checked' : ''} onchange="handleSelect(${index}, '${optKey}')" style="margin-top:4px;">
-              <div style="width:100%;"><span>(${optKey})</span> ${parsedOptContent}</div>
+              <div style="width:100%;"><span>(${optKey})</span>${parsedOptContent}</div>
             </div>
           </label>
         `;
@@ -1066,10 +1061,10 @@ function submitQuiz(isAuto = false) {
 
   lastExamResults = { name: name || '匿名考生', score100: finalScore100, realScore52, correctCount, totalQ, domainStats };
 
-  document.getElementById('report-name-info').textContent = `考生：${name || '匿名考生'} | 模式：${getModeDisplayName(currentMode, currentVal)}`;
+  document.getElementById('report-name-info').textContent = `考生：${name \vert{}\vert{} '匿名考生'} \vert{} 模式：${getModeDisplayName(currentMode, currentVal)}`;
   document.getElementById('report-score').textContent = `${finalScore100} 分`;
   document.getElementById('report-real-score').textContent = `🎯 數學教檢實戰得分：${realScore52} / 52 分（每題 2 分，共答對 ${correctCount} 題）`;
-  document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} / ${totalQ} 題。`;
+  document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} /${totalQ} 題。`;
 
   renderModernBarChart(domainStats);
 
@@ -1123,7 +1118,7 @@ function enterFourthLayerReview() {
   document.getElementById('view-quiz').classList.remove('active');
   document.getElementById('view-review').classList.add('active');
 
-  document.getElementById('review-score-summary').textContent = `總得分：${lastExamResults.score100} 分 ｜ 教檢得分：${lastExamResults.realScore52} / 52 分 ｜ 總答對：${lastExamResults.correctCount} / ${lastExamResults.totalQ} 題`;
+  document.getElementById('review-score-summary').textContent = `總得分：${lastExamResults.score100} 分 ｜ 教檢得分：${lastExamResults.realScore52} / 52 分 ｜ 總答對：${lastExamResults.correctCount} /${lastExamResults.totalQ} 題`;
 
   let html = '';
   questionsData.forEach((q, index) => {
@@ -1135,7 +1130,7 @@ function enterFourthLayerReview() {
     
     const domainTag = q.domain || '普通數學';
     const unitTag = q.unit || '綜合單元';
-    const fullCategoryLabel = `${domainTag} - ${unitTag}`;
+    const fullCategoryLabel = `${domainTag} -${unitTag}`;
 
     let stemContent = q.stem || '（無題幹）';
     let parsedSvg = parseSvgCode(q.svg_code);
@@ -1160,7 +1155,7 @@ function enterFourthLayerReview() {
       if (firstSvg) {
         let svgHtml = `<div class="q-svg-container">${firstSvg}</div>`;
         stemContent = stemContent.split('[IMAGE]').join(svgHtml);
-        hasRereplaced = true;
+        hasReplaced = true;
       }
     }
 
@@ -1214,7 +1209,7 @@ function enterFourthLayerReview() {
 
         html += `
           <div class="opt" style="${optStyle}">
-            <div><span>(${optKey})</span> ${parsedOptContent}</div>
+            <div><span>(${optKey})</span>${parsedOptContent}</div>
           </div>
         `;
       }
@@ -1231,42 +1226,3 @@ function enterFourthLayerReview() {
         </button>
         <div class="accordion-content">
           <div class="step-box">${step1}</div>
-          <div class="step-box">${step2}</div>
-          <div class="step-box">${step3}</div>
-        </div>
-      </div>
-    </div>`;
-  });
-
-  document.getElementById('review-container').innerHTML = html;
-  triggerMathJax();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function toggleAccordion(btn) {
-  const content = btn.nextElementSibling;
-  content.classList.toggle('show');
-  btn.querySelector('span:last-child').textContent = content.classList.contains('show') ? '▴' : '▾';
-}
-
-function triggerMathJax() {
-  if (window.MathJax && window.MathJax.typesetPromise) {
-    window.MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
-  }
-}
-
-function backToHome() {
-  if(timerInterval) clearInterval(timerInterval);
-  userAnswers = {};
-  starredQuestions = {};
-  lastExamResults = null;
-  document.getElementById('reportModal').classList.remove('show');
-  document.getElementById('alertModal').classList.remove('show');
-  document.getElementById('view-quiz').classList.remove('active');
-  document.getElementById('view-review').classList.remove('active');
-  document.getElementById('view-mode-select').classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-</script>
-</body>
-</html>
