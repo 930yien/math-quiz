@@ -541,8 +541,14 @@ function loadMetadataFromSheet() {
         yearSelect.innerHTML = '';
         data.years.forEach((yr, idx) => {
           let opt = document.createElement('option');
-          opt.value = yr;
-          opt.textContent = `${yr}學年度`;
+          opt.value = yr; // 傳給後端的實際值保持 "108-1" 或 "115"
+          
+          // 💡 動態美化顯示文字
+          let displayText = `${yr}學年度`;
+          if (yr === '108-1') displayText = '108年第1次';
+          else if (yr === '108-2') displayText = '108年第2次';
+          
+          opt.textContent = displayText;
           if (idx === 0) opt.selected = true;
           yearSelect.appendChild(opt);
         });
