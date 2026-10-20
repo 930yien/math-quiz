@@ -122,11 +122,12 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 }
 @keyframes gbaFadeOut { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
 
-.container { max-width: 920px; margin: 0 auto; padding: 22px 14px 60px; position: relative; z-index: 10; }
+.container { max-width: 920px; margin: 0 auto; padding: 22px 14px 80px; position: relative; z-index: 10; }
 
+/* ── 修正 1：調高 Header 與顯示設定選單的 z-index，確保絕不被下方區塊遮住 ── */
 .header {
   background: var(--header-bg); color: #fff; padding: 26px 15px 20px; text-align: center;
-  position: relative; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.25); border-bottom: 4px solid var(--accent);
+  position: relative; z-index: 500; box-shadow: 0 4px 15px rgba(0,0,0,0.25); border-bottom: 4px solid var(--accent);
 }
 .header h1 { font-size: calc(1.4rem * var(--font-scale)) !important; margin-bottom: 4px; color: #fff !important; }
 .header p { font-size: calc(0.9rem * var(--font-scale)) !important; color: #fff !important; opacity: 0.95; }
@@ -136,7 +137,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 }
 
 .controls-top-bar {
-  position: absolute; top: 10px; right: 10px; z-index: 300;
+  position: absolute; top: 10px; right: 10px; z-index: 9000;
 }
 .settings-toggle-btn {
   background: rgba(0, 0, 0, 0.6); color: #fff; border: 1px solid rgba(255,255,255,0.3);
@@ -148,10 +149,10 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .settings-panel {
   position: absolute; top: 115%; right: 0; background: var(--card-bg);
   border: 2px solid var(--primary); border-radius: 12px; padding: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 260px; display: none; text-align: left; z-index: 400;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.65); width: 270px; display: none; text-align: left; z-index: 9990;
 }
 .settings-panel.show { display: block !important; }
-.settings-section-title { font-size: 0.82rem; font-weight: bold; color: var(--primary); margin-bottom: 6px; margin-top: 8px; }
+.settings-section-title { font-size: 0.82rem; font-weight: bold; color: var(--primary); margin-bottom: 6px; margin-top: 10px; }
 .settings-section-title:first-child { margin-top: 0; }
 .settings-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
 
@@ -207,13 +208,43 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .btn-start { background: var(--primary); color: #fff; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: calc(1rem * var(--font-scale)); }
 .btn-start.accent { background: var(--accent); }
 
-.sticky-bar {
-  position: sticky; top: 0; z-index: 200; background: var(--card-bg);
+/* ── 修正 2：表頭資訊列支援「鑲嵌式」（非 sticky，需滑回上方查看）與「浮動式電子鐘」 ── */
+.quiz-top-bar {
+  position: relative; z-index: 100; background: var(--card-bg);
   display: flex; align-items: center; justify-content: space-between; padding: 12px 18px;
   border: 2px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 16px;
   flex-wrap: wrap; gap: 8px;
 }
-.timer-label { font-size: calc(0.92rem * var(--font-scale)); }
+.timer-label { font-size: calc(0.95rem * var(--font-scale)); font-weight: bold; color: var(--primary); transition: color 0.3s; }
+.timer-label.warning { color: #ff3b3b !important; animation: blinkText 1s infinite; }
+@keyframes blinkText { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* 左下角浮動式電子鐘 */
+.floating-clock {
+  position: fixed; bottom: 20px; left: 20px; z-index: 450;
+  background: var(--card-bg); color: var(--primary);
+  border: 3px solid var(--primary); border-radius: 12px;
+  padding: 10px 16px; font-weight: 900; font-size: calc(1.15rem * var(--font-scale));
+  box-shadow: 0 8px 25px rgba(0,0,0,0.45);
+  display: none; align-items: center; gap: 8px;
+  letter-spacing: 1px; backdrop-filter: blur(6px);
+  transition: all 0.3s ease;
+}
+.floating-clock.show { display: flex !important; }
+/* 倒數 10 分鐘紅色警示色 */
+.floating-clock.warning {
+  background: #d90429 !important;
+  color: #ffffff !important;
+  border-color: #ffccd5 !important;
+  box-shadow: 0 0 25px rgba(217, 4, 41, 0.85) !important;
+  animation: pulseWarning 1.2s infinite;
+}
+@keyframes pulseWarning {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
 .star-panel { background: var(--accent-light); border: 2px solid var(--accent); padding: 5px 10px; border-radius: 6px; font-size: calc(0.85rem * var(--font-scale)); display: flex; align-items: center; gap: 5px; font-weight: bold; }
 
 .q-wrap { background: var(--card-bg); border: 2px solid var(--border-color); border-top: none; padding: 20px; position: relative; }
@@ -234,10 +265,31 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 }
 .q-star-badge:hover { transform: scale(1.2); }
 
-.q-title { font-size: calc(1.05rem * var(--font-scale)); color: var(--text-main); margin-bottom: 14px; line-height: 1.7; white-space: pre-line; }
+.q-title { font-size: calc(1.05rem * var(--font-scale)); color: var(--text-main); margin-bottom: 14px; line-height: 1.8; white-space: pre-line; }
 
+/* 一般獨立區塊大圖 */
 .q-svg-container { text-align: center; margin: 12px 0; }
 .q-svg-container svg, .q-svg-container img { max-width: 60% !important; height: auto !important; display: inline-block; }
+
+/* ── 新增 1：文字段落內嵌小圖（Inline Image / SVG），不換行、高約字高、寬約1~2字 ── */
+.q-inline-img {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: -0.22em;
+  height: 1.35em;
+  max-width: 2.4em;
+  margin: 0 3px;
+  line-height: 1;
+}
+.q-inline-img svg, .q-inline-img img {
+  height: 100% !important;
+  width: auto !important;
+  max-width: 2.4em !important;
+  max-height: 1.35em !important;
+  display: inline-block !important;
+  vertical-align: middle;
+}
 
 /* ── 選項樣式與防破版 RWD 排版 ── */
 .options { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
@@ -255,7 +307,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .btn-report-corner { background: var(--primary); color: #fff; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: calc(0.82rem * var(--font-scale)); }
 
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 999;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9500;
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
   padding: 15px; overflow-y: auto;
 }
@@ -331,6 +383,11 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   </div>
 </div>
 
+<!-- 🕒 左下角浮動式電子鐘（當選擇浮動式且處於測驗中時顯示） -->
+<div id="floating-timer-box" class="floating-clock">
+  <span>⏱</span> <span id="timer-floating">30:00</span>
+</div>
+
 <div class="header">
   <div class="controls-top-bar" id="settingsWrapper">
     <button type="button" class="settings-toggle-btn" onclick="toggleSettingsPanel(event)">
@@ -359,6 +416,12 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
         <button type="button" class="ctrl-btn" onclick="resetFontSize()">重設</button>
         <button type="button" class="ctrl-btn" onclick="changeFontSize(1)">A+ 放大</button>
       </div>
+
+      <div class="settings-section-title">⏱ 倒數計時模式</div>
+      <div class="settings-row">
+        <button type="button" class="ctrl-btn active" onclick="setTimerStyle('embedded')" id="timer-btn-embedded">📌 鑲嵌於表頭</button>
+        <button type="button" class="ctrl-btn" onclick="setTimerStyle('floating')" id="timer-btn-floating">🕒 左下浮動鐘</button>
+      </div>
     </div>
   </div>
 
@@ -369,7 +432,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 
 <div class="container">
 
-  <!-- 選單畫面 -->
+  <!-- 第一層：選單畫面 -->
   <div id="view-mode-select" class="view-section active">
     <div class="blessing-banner">✨ <strong>展望明年6月：</strong> 教檢一定過！</div>
     <div class="modes-grid">
@@ -385,7 +448,8 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
               <option value="111">111學年度</option>
               <option value="110">110學年度</option>
               <option value="109">109學年度</option>
-              <option value="108">108學年度</option>
+              <option value="108-2">108年第2次</option>
+              <option value="108-1">108年第1次</option>
             </select>
           </div>
           <button type="button" class="btn-start" style="margin-top:12px;" onclick="initQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
@@ -431,10 +495,11 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
     </div>
   </div>
 
-  <!-- 作答引擎畫面 -->
+  <!-- 第二層：作答引擎畫面 -->
   <div id="view-quiz" class="view-section">
-    <div class="sticky-bar">
-      <div class="timer-label" id="timer-box">⏱ 剩餘時間: <span id="timer">30:00</span></div>
+    <!-- 鑲嵌於表頭的狀態列（不跟隨滾動，需滑回上方查看） -->
+    <div class="quiz-top-bar" id="quiz-header-bar">
+      <div class="timer-label" id="timer-embedded-box">⏱ 剩餘時間: <span id="timer-embedded">30:00</span></div>
       <div class="star-panel">⭐ 疑難星號題：<span id="starred-count">0</span> 題</div>
       <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
         <div class="answered-label" id="answered-box" style="font-size:0.85rem;">已作答 <span id="ans-count">0</span> / <span id="total-count">0</span> 題</div>
@@ -455,9 +520,9 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
     </div>
   </div>
 
-  <!-- 錯題檢討畫面 -->
+  <!-- 第四層：錯題檢討畫面 -->
   <div id="view-review" class="view-section">
-    <div class="sticky-bar" style="background:linear-gradient(135deg, var(--primary-dark), var(--primary)); color:#fff;">
+    <div class="quiz-top-bar" style="background:linear-gradient(135deg, var(--primary-dark), var(--primary)); color:#fff;">
       <div>
         <h3 id="review-title" style="font-size:1rem; margin-bottom:2px;">🔍 檢討錯題就上榜</h3>
         <p id="review-score-summary" style="font-size:0.85rem; opacity:0.9;"></p>
@@ -473,7 +538,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 
 </div>
 
-<!-- 彈跳式成效報告儀表板 -->
+<!-- 第三層：彈跳式成效報告儀表板 -->
 <div class="modal-overlay" id="reportModal">
   <div class="modal-content">
     <div class="score-banner">
@@ -505,7 +570,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 <div class="modal-overlay" id="alertModal">
   <div class="modal-content" style="max-width:450px; text-align:center;">
     <h3 id="alert-title" style="color:var(--accent); margin-bottom:12px; font-size:1.2rem;">⚠️ 提示</h3>
-    <p id="alert-message" style="font-size:0.95rem; line-height:1.6; margin-bottom:20px;"></p>
+    <p id="alert-message" style="font-size:0.95rem; line-height:1.6; margin-bottom:20px; white-space: pre-line;"></p>
     <div id="alert-btn-container" style="display:flex; justify-content:center; gap:10px;">
       <button type="button" class="btn-submit" id="alert-confirm-btn" onclick="closeAlertModal()">我知道了</button>
     </div>
@@ -521,12 +586,26 @@ let starredQuestions = {};
 let lastExamResults = null; 
 let timeLeft = 30 * 60;
 let timerInterval = null;
+let timerStyle = 'embedded'; // 'embedded' (鑲嵌於表頭) 或 'floating' (左下浮動鐘)
+let isQuizActive = false;
 let currentMode = '';
 let currentVal = '';
 let barChartInstance = null;
 let warned10M = false;
 let warned3M = false;
 let pendingSelectedUnits = [];
+
+/* 💡 格式化年份與梯次顯示文字（支援 108-1, 108-2） */
+function formatYearDisplay(yr) {
+  let s = String(yr).trim();
+  if (s === '108-1') return '108年第1次';
+  if (s === '108-2') return '108年第2次';
+  if (s.includes('-')) {
+    let parts = s.split('-');
+    return `${parts[0]}年第${parts[1]}次`;
+  }
+  return `${s}學年度`;
+}
 
 /* 💡 診斷節點一：首頁動態中繼資料載入 */
 function loadMetadataFromSheet() {
@@ -541,14 +620,8 @@ function loadMetadataFromSheet() {
         yearSelect.innerHTML = '';
         data.years.forEach((yr, idx) => {
           let opt = document.createElement('option');
-          opt.value = yr; // 傳給後端的實際值保持 "108-1" 或 "115"
-          
-          // 💡 動態美化顯示文字
-          let displayText = `${yr}學年度`;
-          if (yr === '108-1') displayText = '108年第1次';
-          else if (yr === '108-2') displayText = '108年第2次';
-          
-          opt.textContent = displayText;
+          opt.value = yr;
+          opt.textContent = formatYearDisplay(yr);
           if (idx === 0) opt.selected = true;
           yearSelect.appendChild(opt);
         });
@@ -596,7 +669,7 @@ window.onclick = function(event) {
   if (dropdownMenu && dropdownMenu.classList.contains('show') && dropdownWrapper && !dropdownWrapper.contains(event.target)) {
     dropdownMenu.classList.remove('show');
   }
-}
+};
 
 function updateDropdownLabel() {
   const checkboxes = document.querySelectorAll('input[name="unitCheckbox"]:checked');
@@ -646,6 +719,32 @@ function setTheme(themeName) {
   document.getElementById(`btn-${themeName}`).classList.add('active');
 }
 
+/* 💡 修正 2：切換「鑲嵌式」或「左下浮動式電子鐘」 */
+function setTimerStyle(style) {
+  timerStyle = style;
+  document.getElementById('timer-btn-embedded').classList.toggle('active', style === 'embedded');
+  document.getElementById('timer-btn-floating').classList.toggle('active', style === 'floating');
+  updateTimerVisibility();
+}
+
+function updateTimerVisibility() {
+  const embeddedBox = document.getElementById('timer-embedded-box');
+  const floatingBox = document.getElementById('floating-timer-box');
+  
+  if (!isQuizActive) {
+    if (floatingBox) floatingBox.classList.remove('show');
+    return;
+  }
+
+  if (timerStyle === 'floating') {
+    if (embeddedBox) embeddedBox.style.display = 'none';
+    if (floatingBox) floatingBox.classList.add('show');
+  } else {
+    if (embeddedBox) embeddedBox.style.display = 'block';
+    if (floatingBox) floatingBox.classList.remove('show');
+  }
+}
+
 function checkAndInitMultiUnitQuiz() {
   const checkboxes = document.querySelectorAll('input[name="unitCheckbox"]:checked');
   if (checkboxes.length === 0) {
@@ -664,7 +763,7 @@ function checkAndInitMultiUnitQuiz() {
     })
     .then(data => {
       if (!data || data.length === 0) {
-        showAlertModal("⚠️ 找不到試題（節點 3）", `您所勾選的單元（${valString}）在 Google Sheet 的 Questions 分頁中找不到對應試題。請檢查 \`domain\` 或 \`unit\` 欄位是否填寫正確！`);
+        showAlertModal("⚠️ 找不到試題（節點 3）", `您所勾選的單元（${valString}）在 Google Sheet 的 Questions 分頁中找不到對應試題。請檢查 domain 或 unit 欄位是否填寫正確！`);
         return;
       }
       
@@ -704,15 +803,17 @@ function initQuiz(mode, val) {
   lastExamResults = null;
   warned10M = false;
   warned3M = false;
+  isQuizActive = false;
+  updateTimerVisibility();
   
   document.getElementById('starred-count').textContent = '0';
+  document.getElementById('ans-count').textContent = '0';
   document.getElementById('view-mode-select').classList.remove('active');
   document.getElementById('view-review').classList.remove('active');
   document.getElementById('view-quiz').classList.add('active');
   
   document.getElementById('student-info-card').style.display = 'block';
   document.getElementById('report-trigger-btn').style.display = 'none';
-  document.getElementById('timer-box').style.display = 'block';
   document.getElementById('quiz-container').innerHTML = '<div class="card loading-box">正在從雲端題庫載入試題，請稍候...</div>';
   document.getElementById('submit-area-wrap').style.display = 'none';
 
@@ -755,6 +856,8 @@ function initQuiz(mode, val) {
         return;
       }
 
+      isQuizActive = true;
+      updateTimerVisibility();
       startTimer();
       document.getElementById('submit-area-wrap').style.display = 'block';
     })
@@ -772,17 +875,30 @@ function initQuiz(mode, val) {
     });
 }
 
+/* 💡 新增 1：擴充 parseSvgCode，支援 in1:, in2: (行內小圖) 以及 stem1:, OPT_A: */
 function parseSvgCode(svgCodeStr) {
   let stemMap = {};
+  let inlineMap = {};
   let optMap = {};
   let defaultList = [];
 
-  if (!svgCodeStr) return { stemMap, optMap, defaultList };
+  if (!svgCodeStr) return { stemMap, inlineMap, optMap, defaultList };
   let parts = String(svgCodeStr).split('|||').map(p => p.trim()).filter(Boolean);
 
   parts.forEach(part => {
     let upper = part.toUpperCase();
-    if (upper.startsWith('STEM')) {
+    // 辨識行內內嵌小圖：in1:<svg>...</svg> 或 inline1:<svg>...</svg>
+    if (upper.startsWith('IN')) {
+      let colonIdx = part.indexOf(':');
+      if (colonIdx !== -1) {
+        let key = part.substring(0, colonIdx).trim().toLowerCase();
+        let numMatch = key.replace(/\D/g, '') || '1';
+        let content = part.substring(colonIdx + 1).trim();
+        inlineMap[numMatch] = content;
+      } else {
+        defaultList.push(part);
+      }
+    } else if (upper.startsWith('STEM')) {
       let colonIdx = part.indexOf(':');
       if (colonIdx !== -1) {
         let key = part.substring(0, colonIdx).trim().toLowerCase();
@@ -807,7 +923,90 @@ function parseSvgCode(svgCodeStr) {
     }
   });
 
-  return { stemMap, optMap, defaultList };
+  return { stemMap, inlineMap, optMap, defaultList };
+}
+
+/* 將題幹文字與區塊圖、行內小圖合成的共用工具函式 */
+function buildStemAndSvgHtml(q) {
+  let stemContent = q.stem || '（無題幹）';
+  let parsedSvg = parseSvgCode(q.svg_code);
+  let hasReplaced = false;
+
+  // 1. 優先處理行內小圖 (in1:, in2: ... 對應題幹中的 [IN1], [IMAGE1], [STEM1])
+  Object.keys(parsedSvg.inlineMap).forEach(num => {
+    let rawContent = parsedSvg.inlineMap[num];
+    if (rawContent && !rawContent.startsWith('<') && rawContent.startsWith('http')) {
+      rawContent = `<img src="${rawContent}" alt="內嵌圖">`;
+    }
+    let inlineHtml = `<span class="q-inline-img">${rawContent}</span>`;
+    let tagsToTry = [`[IN${num}]`, `[IMAGE${num}]`, `[STEM${num}]`];
+    tagsToTry.forEach(tag => {
+      if (stemContent.includes(tag)) {
+        stemContent = stemContent.split(tag).join(inlineHtml);
+        hasReplaced = true;
+      }
+    });
+  });
+
+  // 若題幹只寫 [IN] 或 [IMAGE]，且有設定 in1:
+  if (!hasReplaced && parsedSvg.inlineMap['1']) {
+    let rawContent = parsedSvg.inlineMap['1'];
+    if (rawContent && !rawContent.startsWith('<') && rawContent.startsWith('http')) {
+      rawContent = `<img src="${rawContent}" alt="內嵌圖">`;
+    }
+    let inlineHtml = `<span class="q-inline-img">${rawContent}</span>`;
+    if (stemContent.includes('[IN]')) {
+      stemContent = stemContent.split('[IN]').join(inlineHtml);
+      hasReplaced = true;
+    } else if (stemContent.includes('[IMAGE]')) {
+      stemContent = stemContent.split('[IMAGE]').join(inlineHtml);
+      hasReplaced = true;
+    }
+  }
+
+  // 2. 處理一般區塊大圖 (stem1:, stem2: ... 對應 [IMAGE1], [STEM1])
+  Object.keys(parsedSvg.stemMap).forEach(num => {
+    let rawContent = parsedSvg.stemMap[num];
+    if (rawContent && !rawContent.startsWith('<') && rawContent.startsWith('http')) {
+      rawContent = `<img src="${rawContent}" alt="題幹圖形">`;
+    }
+    let svgHtml = `<div class="q-svg-container">${rawContent}</div>`;
+    let targetTag = `[IMAGE${num}]`;
+    let targetTag2 = `[STEM${num}]`;
+    if (stemContent.includes(targetTag)) {
+      stemContent = stemContent.split(targetTag).join(svgHtml);
+      hasReplaced = true;
+    }
+    if (stemContent.includes(targetTag2)) {
+      stemContent = stemContent.split(targetTag2).join(svgHtml);
+      hasReplaced = true;
+    }
+  });
+
+  if (!hasReplaced && stemContent.includes('[IMAGE]')) {
+    let firstSvg = parsedSvg.stemMap['1'] || parsedSvg.defaultList[0] || '';
+    if (firstSvg) {
+      if (!firstSvg.startsWith('<') && firstSvg.startsWith('http')) {
+        firstSvg = `<img src="${firstSvg}" alt="題幹圖形">`;
+      }
+      let svgHtml = `<div class="q-svg-container">${firstSvg}</div>`;
+      stemContent = stemContent.split('[IMAGE]').join(svgHtml);
+      hasReplaced = true;
+    }
+  }
+
+  let bottomSvgHtml = '';
+  if (!hasReplaced && parsedSvg.defaultList.length > 0) {
+    parsedSvg.defaultList.forEach(part => {
+      let displayPart = part;
+      if (!displayPart.startsWith('<') && displayPart.startsWith('http')) {
+        displayPart = `<img src="${displayPart}" alt="題幹圖形">`;
+      }
+      bottomSvgHtml += `<div class="q-svg-container">${displayPart}</div>`;
+    });
+  }
+
+  return { stemContent, bottomSvgHtml };
 }
 
 function parseOptionContent(optText, q, optKey) {
@@ -854,39 +1053,7 @@ function renderQuiz(questions) {
     const isStarred = starredQuestions[index];
     const userAns = userAnswers[index];
 
-    let stemContent = q.stem || '（無題幹）';
-    let parsedSvg = parseSvgCode(q.svg_code);
-    let hasReplaced = false;
-
-    Object.keys(parsedSvg.stemMap).forEach(num => {
-      let targetTag = `[IMAGE${num}]`;
-      let targetTag2 = `[STEM${num}]`;
-      let svgHtml = `<div class="q-svg-container">${parsedSvg.stemMap[num]}</div>`;
-      if (stemContent.includes(targetTag)) {
-        stemContent = stemContent.split(targetTag).join(svgHtml);
-        hasReplaced = true;
-      }
-      if (stemContent.includes(targetTag2)) {
-        stemContent = stemContent.split(targetTag2).join(svgHtml);
-        hasReplaced = true;
-      }
-    });
-
-    if (!hasReplaced && stemContent.includes('[IMAGE]')) {
-      let firstSvg = parsedSvg.stemMap['1'] || parsedSvg.defaultList[0] || '';
-      if (firstSvg) {
-        let svgHtml = `<div class="q-svg-container">${firstSvg}</div>`;
-        stemContent = stemContent.split('[IMAGE]').join(svgHtml);
-        hasReplaced = true;
-      }
-    }
-
-    let bottomSvgHtml = '';
-    if (!hasReplaced && parsedSvg.defaultList.length > 0) {
-      parsedSvg.defaultList.forEach(part => {
-        bottomSvgHtml += `<div class="q-svg-container">${part}</div>`;
-      });
-    }
+    const { stemContent, bottomSvgHtml } = buildStemAndSvgHtml(q);
 
     html += `
       <div class="card" style="border:2px solid var(--border-color); padding:18px; margin-bottom:15px; position:relative;">
@@ -940,7 +1107,7 @@ function toggleStar(index) {
 }
 
 function getModeDisplayName(mode, val) {
-  if (mode === 'year') return `歷屆年度精準刷題：${val}學年度`;
+  if (mode === 'year') return `歷屆年度精準刷題：${formatYearDisplay(val)}`;
   if (mode === 'unit') return `單元特訓複選：${val}`;
   if (mode === 'random') return `隨機閃電馬拉松`;
   return '綜合練習';
@@ -960,18 +1127,43 @@ function handleSelect(qIndex, optKey) {
   document.getElementById('ans-count').textContent = Object.keys(userAnswers).length;
 }
 
+/* 💡 修正 2：計時器同步更新「鑲嵌式」與「浮動式電子鐘」，並在 <= 10 分鐘時轉為紅色警示色 */
+function updateTimerUI() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  const timeStr = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+
+  const elEmbedded = document.getElementById('timer-embedded');
+  const elFloating = document.getElementById('timer-floating');
+  if (elEmbedded) elEmbedded.textContent = timeStr;
+  if (elFloating) elFloating.textContent = timeStr;
+
+  const embeddedBox = document.getElementById('timer-embedded-box');
+  const floatingBox = document.getElementById('floating-timer-box');
+
+  // 當剩餘時間 <= 10 分鐘 (600 秒)，轉為紅色警示狀態
+  if (timeLeft <= 600) {
+    if (embeddedBox) embeddedBox.classList.add('warning');
+    if (floatingBox) floatingBox.classList.add('warning');
+  } else {
+    if (embeddedBox) embeddedBox.classList.remove('warning');
+    if (floatingBox) floatingBox.classList.remove('warning');
+  }
+}
+
 function startTimer() {
   timeLeft = 30 * 60;
+  updateTimerUI();
   if(timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     timeLeft--;
+    updateTimerUI();
+
     const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
-    const el = document.getElementById('timer');
-    if(el) el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
 
     if (m === 10 && s === 0 && !warned10M) {
       warned10M = true;
-      showAlertModal("⏳ 時間提醒", "考試時間剩下 10 分鐘囉！請把握時間檢查未作答的題目。");
+      showAlertModal("⏳ 時間提醒", "考試時間剩下 10 分鐘囉！時鐘已轉為紅色警示，請把握時間檢查未作答的題目。");
     }
     if (m === 3 && s === 0 && !warned3M) {
       warned3M = true;
@@ -1042,6 +1234,8 @@ function submitQuiz(isAuto = false) {
   const name = document.getElementById('sName').value.trim();
   if (!isAuto && !name) { alert('請輸入您的姓名再交卷！'); document.getElementById('sName').focus(); return; }
   if (timerInterval) clearInterval(timerInterval);
+  isQuizActive = false;
+  updateTimerVisibility();
 
   let correctCount = 0;
   const totalQ = questionsData.length;
@@ -1121,6 +1315,8 @@ function enterFourthLayerReview() {
   document.getElementById('reportModal').classList.remove('show');
   document.getElementById('view-quiz').classList.remove('active');
   document.getElementById('view-review').classList.add('active');
+  isQuizActive = false;
+  updateTimerVisibility();
 
   document.getElementById('review-score-summary').textContent = `總得分：${lastExamResults.score100} 分 ｜ 教檢得分：${lastExamResults.realScore52} / 52 分 ｜ 總答對：${lastExamResults.correctCount} / ${lastExamResults.totalQ} 題`;
 
@@ -1136,39 +1332,7 @@ function enterFourthLayerReview() {
     const unitTag = q.unit || '綜合單元';
     const fullCategoryLabel = `${domainTag} - ${unitTag}`;
 
-    let stemContent = q.stem || '（無題幹）';
-    let parsedSvg = parseSvgCode(q.svg_code);
-    let hasReplaced = false;
-
-    Object.keys(parsedSvg.stemMap).forEach(num => {
-      let targetTag = `[IMAGE${num}]`;
-      let targetTag2 = `[STEM${num}]`;
-      let svgHtml = `<div class="q-svg-container">${parsedSvg.stemMap[num]}</div>`;
-      if (stemContent.includes(targetTag)) {
-        stemContent = stemContent.split(targetTag).join(svgHtml);
-        hasReplaced = true;
-      }
-      if (stemContent.includes(targetTag2)) {
-        stemContent = stemContent.split(targetTag2).join(svgHtml);
-        hasReplaced = true;
-      }
-    });
-
-    if (!hasReplaced && stemContent.includes('[IMAGE]')) {
-      let firstSvg = parsedSvg.stemMap['1'] || parsedSvg.defaultList[0] || '';
-      if (firstSvg) {
-        let svgHtml = `<div class="q-svg-container">${firstSvg}</div>`;
-        stemContent = stemContent.split('[IMAGE]').join(svgHtml);
-        hasReplaced = true;
-      }
-    }
-
-    let bottomSvgHtml = '';
-    if (!hasReplaced && parsedSvg.defaultList.length > 0) {
-      parsedSvg.defaultList.forEach(part => {
-        bottomSvgHtml += `<div class="q-svg-container">${part}</div>`;
-      });
-    }
+    const { stemContent, bottomSvgHtml } = buildStemAndSvgHtml(q);
 
     let isMathDomain = (domainTag.includes('普通數學') || domainTag.includes('數'));
     let shortSummary = q.short_summary || (isMathDomain ? `本題測驗「${fullCategoryLabel}」的核心運算與性質。` : `本題測驗「${fullCategoryLabel}」的教學實務與理論應用。`);
@@ -1256,6 +1420,8 @@ function triggerMathJax() {
 
 function backToHome() {
   if(timerInterval) clearInterval(timerInterval);
+  isQuizActive = false;
+  updateTimerVisibility();
   userAnswers = {};
   starredQuestions = {};
   lastExamResults = null;
