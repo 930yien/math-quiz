@@ -308,7 +308,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .gba-grid-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 24px 24px; }
 </style>
 </head>
-<body onclick="closeAllPopups(event)" onload="loadMetadataFromSheet()">
+<body onload="loadMetadataFromSheet()">
 
 <div class="gba-grid-bg" aria-hidden="true"></div>
 <div class="wave-bg-container" aria-hidden="true"><div class="wave"></div><div class="wave"></div></div>
@@ -339,25 +339,25 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
     <div class="settings-panel" id="settingsPanel" onclick="event.stopPropagation()">
       <div class="settings-section-title">🎨 視覺主題</div>
       <div class="settings-row">
-        <button class="ctrl-btn active" onclick="setTheme('default')" id="btn-default">電玩</button>
-        <button class="ctrl-btn" onclick="setTheme('ikea')" id="btn-ikea">IKEA</button>
-        <button class="ctrl-btn" onclick="setTheme('starbucks')" id="btn-starbucks">星巴克</button>
-        <button class="ctrl-btn" onclick="setTheme('kfc')" id="btn-kfc">KFC</button>
+        <button type="button" class="ctrl-btn active" onclick="setTheme('default')" id="btn-default">電玩</button>
+        <button type="button" class="ctrl-btn" onclick="setTheme('ikea')" id="btn-ikea">IKEA</button>
+        <button type="button" class="ctrl-btn" onclick="setTheme('starbucks')" id="btn-starbucks">星巴克</button>
+        <button type="button" class="ctrl-btn" onclick="setTheme('kfc')" id="btn-kfc">KFC</button>
       </div>
 
       <div class="settings-section-title">✒️ 閱讀字體</div>
       <div class="settings-row">
-        <button class="ctrl-btn active" onclick="setFont('siyuan')" id="font-siyuan">思源黑</button>
-        <button class="ctrl-btn" onclick="setFont('songti')" id="font-songti">思源宋</button>
-        <button class="ctrl-btn" onclick="setFont('rounded')" id="font-rounded">圓體</button>
-        <button class="ctrl-btn" onclick="setFont('classicming')" id="font-classicming">經典明體</button>
+        <button type="button" class="ctrl-btn active" onclick="setFont('siyuan')" id="font-siyuan">思源黑</button>
+        <button type="button" class="ctrl-btn" onclick="setFont('songti')" id="font-songti">思源宋</button>
+        <button type="button" class="ctrl-btn" onclick="setFont('rounded')" id="font-rounded">圓體</button>
+        <button type="button" class="ctrl-btn" onclick="setFont('classicming')" id="font-classicming">經典明體</button>
       </div>
 
       <div class="settings-section-title">🔍 字體大小</div>
       <div class="settings-row">
-        <button class="ctrl-btn" onclick="changeFontSize(-1)">A- 縮小</button>
-        <button class="ctrl-btn" onclick="resetFontSize()">重設</button>
-        <button class="ctrl-btn" onclick="changeFontSize(1)">A+ 放大</button>
+        <button type="button" class="ctrl-btn" onclick="changeFontSize(-1)">A- 縮小</button>
+        <button type="button" class="ctrl-btn" onclick="resetFontSize()">重設</button>
+        <button type="button" class="ctrl-btn" onclick="changeFontSize(1)">A+ 放大</button>
       </div>
     </div>
   </div>
@@ -373,11 +373,11 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   <div id="view-mode-select" class="view-section active">
     <div class="blessing-banner">✨ <strong>展望明年6月：</strong> 教檢一定過！</div>
     <div class="modes-grid">
-      <div class="mode-card" onclick="event.stopPropagation()">
+      <div class="mode-card">
         <div><h3>📅 歷屆年度精準刷題</h3><p>選擇特定年度教檢試題，完整體驗實戰臨場感。</p></div>
         <div>
           <div class="mode-control">
-            <select id="yearSelect" onclick="event.stopPropagation()">
+            <select id="yearSelect">
               <option value="115">115學年度</option>
               <option value="114">114學年度</option>
               <option value="113">113學年度</option>
@@ -388,44 +388,44 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
               <option value="108">108學年度</option>
             </select>
           </div>
-          <button type="button" class="btn-start" style="margin-top:12px;" onclick="event.stopPropagation(); initQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
+          <button type="button" class="btn-start" style="margin-top:12px;" onclick="initQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
         </div>
       </div>
 
-      <div class="mode-card" onclick="event.stopPropagation()">
+      <div class="mode-card">
         <div><h3>📚 單元主題式突破（可複選）</h3><p>勾選多個單元或全範圍，系統將自動智慧出題。</p></div>
         <div>
-          <div class="dropdown-select-wrapper" id="dropdownWrapper" onclick="event.stopPropagation()">
-            <button type="button" class="dropdown-toggle-btn" onclick="event.stopPropagation(); toggleDropdown(event)">
+          <div class="dropdown-select-wrapper" id="dropdownWrapper">
+            <button type="button" class="dropdown-toggle-btn" onclick="toggleDropdown(event)">
               <span id="dropdownLabel">請選擇單元（可複選）</span> ▾
             </button>
-            <div class="dropdown-menu-box" id="dropdownMenu" onclick="event.stopPropagation()" style="text-align: left; padding: 8px;">
-              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="普通數學" onchange="updateDropdownLabel()"> 📐 普通數學（全範圍）</label>
-              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="教材教法" onchange="updateDropdownLabel()"> 🍎 教材教法（全範圍）</label>
+            <div class="dropdown-menu-box" id="dropdownMenu" style="text-align: left; padding: 8px;">
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="普通數學" onchange="updateDropdownLabel()"> 📐 普通數學（全範圍）</label>
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="教材教法" onchange="updateDropdownLabel()"> 🍎 教材教法（全範圍）</label>
               <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
-              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="n數與量" onchange="updateDropdownLabel()"> 🔹 n數與量</label>
-              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="s空間與形狀" onchange="updateDropdownLabel()"> 🔹 s空間與形狀</label>
-              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="g坐標幾何" onchange="updateDropdownLabel()"> 🔹 g坐標幾何</label>
-              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="r關係" onchange="updateDropdownLabel()"> 🔹 r關係</label>
-              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="a代數" onchange="updateDropdownLabel()"> 🔹 a代數</label>
-              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="f函數" onchange="updateDropdownLabel()"> 🔹 f函數</label>
-              <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="d資料與不確定性" onchange="updateDropdownLabel()"> 🔹 d資料與不確定性</label>
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="n數與量" onchange="updateDropdownLabel()"> 🔹 n數與量</label>
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="s空間與形狀" onchange="updateDropdownLabel()"> 🔹 s空間與形狀</label>
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="g坐標幾何" onchange="updateDropdownLabel()"> 🔹 g坐標幾何</label>
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="r關係" onchange="updateDropdownLabel()"> 🔹 r關係</label>
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="a代數" onchange="updateDropdownLabel()"> 🔹 a代數</label>
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="f函數" onchange="updateDropdownLabel()"> 🔹 f函數</label>
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="d資料與不確定性" onchange="updateDropdownLabel()"> 🔹 d資料與不確定性</label>
             </div>
           </div>
-          <button type="button" class="btn-start" onclick="event.stopPropagation(); checkAndInitMultiUnitQuiz()">開始多選單元特訓</button>
+          <button type="button" class="btn-start" onclick="checkAndInitMultiUnitQuiz()">開始多選單元特訓</button>
         </div>
       </div>
 
-      <div class="mode-card" onclick="event.stopPropagation()">
+      <div class="mode-card">
         <div><h3>⚡ 隨機閃電馬拉松</h3><p>隨機抽取指定題數，快速檢驗綜合反應能力。</p></div>
         <div>
-          <div class="mode-control" onclick="event.stopPropagation()">
-            <select id="limitSelect" onclick="event.stopPropagation()">
+          <div class="mode-control">
+            <select id="limitSelect">
               <option value="5">5 題（閃電快測）</option>
               <option value="10" selected>10 題（標準特訓）</option>
             </select>
           </div>
-          <button type="button" class="btn-start accent" style="margin-top:12px;" onclick="event.stopPropagation(); initQuiz('random', document.getElementById('limitSelect').value)">開始隨機特訓</button>
+          <button type="button" class="btn-start accent" style="margin-top:12px;" onclick="initQuiz('random', document.getElementById('limitSelect').value)">開始隨機特訓</button>
         </div>
       </div>
     </div>
@@ -474,7 +474,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 </div>
 
 <!-- 彈跳式成效報告儀表板 -->
-<div class="modal-overlay" id="reportModal" onclick="event.stopPropagation()">
+<div class="modal-overlay" id="reportModal">
   <div class="modal-content">
     <div class="score-banner">
       <h2>📊 學習成效分析報告</h2>
@@ -551,12 +551,12 @@ function loadMetadataFromSheet() {
       const menuBox = document.getElementById('dropdownMenu');
       if (data.units && data.units.length > 0) {
         let unitsHtml = `
-          <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="普通數學" onchange="updateDropdownLabel()"> 📐 普通數學（全範圍）</label>
-          <label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="教材教法" onchange="updateDropdownLabel()"> 🍎 教材教法（全範圍）</label>
+          <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="普通數學" onchange="updateDropdownLabel()"> 📐 普通數學（全範圍）</label>
+          <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="教材教法" onchange="updateDropdownLabel()"> 🍎 教材教法（全範圍）</label>
           <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
         `;
         data.units.forEach(u => {
-          unitsHtml += `<label class="checkbox-item" onclick="event.stopPropagation()"><input type="checkbox" name="unitCheckbox" value="${u}" onchange="updateDropdownLabel()"> 🔹 ${u}</label>`;
+          unitsHtml += `<label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="${u}" onchange="updateDropdownLabel()"> 🔹 ${u}</label>`;
         });
         menuBox.innerHTML = unitsHtml;
       }
@@ -578,15 +578,18 @@ function toggleDropdown(event) {
   menu.classList.toggle('show');
 }
 
-function closeAllPopups(event) {
+// 點擊頁面其他地方關閉設定面板與下拉選單
+window.onclick = function(event) {
   const settingsPanel = document.getElementById('settingsPanel');
-  if (settingsPanel && !settingsPanel.contains(event.target)) {
+  const dropdownMenu = document.getElementById('dropdownMenu');
+  const dropdownWrapper = document.getElementById('dropdownWrapper');
+  const settingsWrapper = document.getElementById('settingsWrapper');
+
+  if (settingsPanel && settingsPanel.classList.contains('show') && settingsWrapper && !settingsWrapper.contains(event.target)) {
     settingsPanel.classList.remove('show');
   }
-  const wrapper = document.getElementById('dropdownWrapper');
-  if (wrapper && !wrapper.contains(event.target)) {
-    const menu = document.getElementById('dropdownMenu');
-    if (menu) menu.classList.remove('show');
+  if (dropdownMenu && dropdownMenu.classList.contains('show') && dropdownWrapper && !dropdownWrapper.contains(event.target)) {
+    dropdownMenu.classList.remove('show');
   }
 }
 
@@ -767,7 +770,7 @@ function initQuiz(mode, val) {
     });
 }
 
-/* 💡 智慧解析 svg_code：支援 stem1:, stem2:, OPT_A:, OPT_B: 標籤與 ||| 隔開 */
+/* 💡 解析 `svg_code` 並支援 stem1:, stem2:, OPT_A:, OPT_B: 標籤格式 */
 function parseSvgCode(svgCodeStr) {
   let stemMap = {};
   let optMap = {};
@@ -820,10 +823,10 @@ function parseOptionContent(optText, q, optKey) {
     
     if (optSvg) {
       let displaySvg = optSvg;
-      if (!displaySvg.startsWith('<') && !displaySvg.startsWith('http')) {
-        // 文字
-      } else if (!displaySvg.startsWith('<')) {
-        displaySvg = `<img src="${displaySvg}" alt="選項圖形">`;
+      if (displaySvg.startsWith('<') || displaySvg.startsWith('http')) {
+        if (!displaySvg.startsWith('<')) {
+          displaySvg = `<img src="${displaySvg}" alt="選項圖形">`;
+        }
       }
       text = text.replace(/\[IMG\]|\[IMAGE\]/g, `<div class="opt-img-container">${displaySvg}</div>`);
     }
@@ -901,7 +904,7 @@ function renderQuiz(questions) {
     html += `<div class="options" data-qindex="${index}">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
       const optValRaw = q['opt_' + optKey.toLowerCase()];
-      if (optValRaw !== undefined && optValRaw !== null && optValRaw !== "") {
+      if (optValRaw !== undefined && optVal !== null && optValRaw !== "") {
         const isSelected = (userAns === optKey);
         let optStyle = isSelected ? "background:var(--accent-light); border-color:var(--accent); font-weight:bold;" : "";
         const parsedOptContent = parseOptionContent(optValRaw, q, optKey);
@@ -910,7 +913,7 @@ function renderQuiz(questions) {
           <label class="opt" style="${optStyle}">
             <div style="display:flex; align-items:flex-start; gap:8px; width:100%;">
               <input type="radio" name="q_${index}" value="${optKey}" ${isSelected ? 'checked' : ''} onchange="handleSelect(${index}, '${optKey}')" style="margin-top:4px;">
-              <div style="width:100%;"><span>(${optKey})</span>${parsedOptContent}</div>
+              <div style="width:100%;"><span>(${optKey})</span> ${parsedOptContent}</div>
             </div>
           </label>
         `;
@@ -1061,10 +1064,10 @@ function submitQuiz(isAuto = false) {
 
   lastExamResults = { name: name || '匿名考生', score100: finalScore100, realScore52, correctCount, totalQ, domainStats };
 
-  document.getElementById('report-name-info').textContent = `考生：${name \vert{}\vert{} '匿名考生'} \vert{} 模式：${getModeDisplayName(currentMode, currentVal)}`;
+  document.getElementById('report-name-info').textContent = `考生：${name || '匿名考生'} | 模式：${getModeDisplayName(currentMode, currentVal)}`;
   document.getElementById('report-score').textContent = `${finalScore100} 分`;
   document.getElementById('report-real-score').textContent = `🎯 數學教檢實戰得分：${realScore52} / 52 分（每題 2 分，共答對 ${correctCount} 題）`;
-  document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} /${totalQ} 題。`;
+  document.getElementById('report-summary').textContent = `本次測驗共作答 ${Object.keys(userAnswers).length} / ${totalQ} 題。`;
 
   renderModernBarChart(domainStats);
 
@@ -1118,7 +1121,7 @@ function enterFourthLayerReview() {
   document.getElementById('view-quiz').classList.remove('active');
   document.getElementById('view-review').classList.add('active');
 
-  document.getElementById('review-score-summary').textContent = `總得分：${lastExamResults.score100} 分 ｜ 教檢得分：${lastExamResults.realScore52} / 52 分 ｜ 總答對：${lastExamResults.correctCount} /${lastExamResults.totalQ} 題`;
+  document.getElementById('review-score-summary').textContent = `總得分：${lastExamResults.score100} 分 ｜ 教檢得分：${lastExamResults.realScore52} / 52 分 ｜ 總答對：${lastExamResults.correctCount} / ${lastExamResults.totalQ} 題`;
 
   let html = '';
   questionsData.forEach((q, index) => {
@@ -1130,7 +1133,7 @@ function enterFourthLayerReview() {
     
     const domainTag = q.domain || '普通數學';
     const unitTag = q.unit || '綜合單元';
-    const fullCategoryLabel = `${domainTag} -${unitTag}`;
+    const fullCategoryLabel = `${domainTag} - ${unitTag}`;
 
     let stemContent = q.stem || '（無題幹）';
     let parsedSvg = parseSvgCode(q.svg_code);
@@ -1209,7 +1212,7 @@ function enterFourthLayerReview() {
 
         html += `
           <div class="opt" style="${optStyle}">
-            <div><span>(${optKey})</span>${parsedOptContent}</div>
+            <div><span>(${optKey})</span> ${parsedOptContent}</div>
           </div>
         `;
       }
@@ -1226,3 +1229,42 @@ function enterFourthLayerReview() {
         </button>
         <div class="accordion-content">
           <div class="step-box">${step1}</div>
+          <div class="step-box">${step2}</div>
+          <div class="step-box">${step3}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('review-container').innerHTML = html;
+  triggerMathJax();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleAccordion(btn) {
+  const content = btn.nextElementSibling;
+  content.classList.toggle('show');
+  btn.querySelector('span:last-child').textContent = content.classList.contains('show') ? '▴' : '▾';
+}
+
+function triggerMathJax() {
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
+  }
+}
+
+function backToHome() {
+  if(timerInterval) clearInterval(timerInterval);
+  userAnswers = {};
+  starredQuestions = {};
+  lastExamResults = null;
+  document.getElementById('reportModal').classList.remove('show');
+  document.getElementById('alertModal').classList.remove('show');
+  document.getElementById('view-quiz').classList.remove('active');
+  document.getElementById('view-review').classList.remove('active');
+  document.getElementById('view-mode-select').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
