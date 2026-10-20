@@ -578,7 +578,6 @@ function toggleDropdown(event) {
   menu.classList.toggle('show');
 }
 
-// 點擊頁面其他地方關閉設定面板與下拉選單
 window.onclick = function(event) {
   const settingsPanel = document.getElementById('settingsPanel');
   const dropdownMenu = document.getElementById('dropdownMenu');
@@ -691,7 +690,6 @@ function confirmMultiUnitQuiz() {
   }
 }
 
-/* 💡 診斷節點二與三：測驗模式初始化與資料檢驗 */
 function initQuiz(mode, val) {
   currentMode = mode;
   currentVal = val;
@@ -721,7 +719,6 @@ function initQuiz(mode, val) {
       return res.json();
     })
     .then(data => {
-      /* 💡 診斷節點三：檢查回傳資料是否為空 */
       if (!data || !Array.isArray(data) || data.length === 0) {
         document.getElementById('quiz-container').innerHTML = `
           <div class="card" style="border-color:var(--accent); text-align:center; padding:30px;">
@@ -744,7 +741,6 @@ function initQuiz(mode, val) {
       questionsData = data;
       document.getElementById('total-count').textContent = questionsData.length;
       
-      /* 💡 診斷節點四：前端渲染防禦 */
       try {
         renderQuiz(questionsData);
       } catch (renderErr) {
@@ -770,7 +766,6 @@ function initQuiz(mode, val) {
     });
 }
 
-/* 💡 解析 `svg_code` 並支援 stem1:, stem2:, OPT_A:, OPT_B: 標籤格式 */
 function parseSvgCode(svgCodeStr) {
   let stemMap = {};
   let optMap = {};
@@ -904,7 +899,7 @@ function renderQuiz(questions) {
     html += `<div class="options" data-qindex="${index}">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
       const optValRaw = q['opt_' + optKey.toLowerCase()];
-      if (optValRaw !== undefined && optVal !== null && optValRaw !== "") {
+      if (optValRaw !== undefined && optValRaw !== null && optValRaw !== "") {
         const isSelected = (userAns === optKey);
         let optStyle = isSelected ? "background:var(--accent-light); border-color:var(--accent); font-weight:bold;" : "";
         const parsedOptContent = parseOptionContent(optValRaw, q, optKey);
@@ -1202,7 +1197,7 @@ function enterFourthLayerReview() {
     html += `<div class="options">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
       const optValRaw = q['opt_' + optKey.toLowerCase()];
-      if (optValRaw !== undefined && optVal !== null && optValRaw !== "") {
+      if (optValRaw !== undefined && optValRaw !== null && optValRaw !== "") {
         const isSelected = (userAns === optKey);
         const isRightAnswer = (q.answer === optKey);
         let optStyle = "";
