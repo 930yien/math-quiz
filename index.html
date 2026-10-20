@@ -79,7 +79,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   100% { transform: translateX(-50%) translateY(0); } 
 }
 
-/* 🚀 絢麗 GBA 復古流星與火箭噴發開場動畫 */
+/* 🚀 震撼、超大火箭超越框線與密集流星雨的開場動畫 */
 #intro-overlay {
   position: fixed; inset: 0; background: #05070c; z-index: 9999;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -767,15 +767,79 @@ function initQuiz(mode, val) {
     });
 }
 
-function parseOptionContent(optText) {
+/* 💡 解析 `svg_code` 並智慧對應標籤 (stem1:, stem2:, OPT_A:, 等) */
+function parseSvgCode(svgCodeStr) {
+  let stemMap = {};
+  let optMap = {};
+  let defaultList = [];
+
+  if (!svgCodeStr) return { stemMap, optMap, defaultList };
+  let parts = String(svgCodeStr).split('|||').map(p => p.trim()).filter(Boolean);
+
+  parts.forEach(part => {
+    let upper = part.toUpperCase();
+    if (upper.startsWith('STEM')) {
+      // 例如：stem1:<svg>...</svg>
+      let colonIdx = part.indexOf(':');
+      if (colonIdx !== -1) {
+        let key = part.substring(0, colonIdx).trim().toLowerCase(); // "stem1"
+        let numMatch = key.replace(/\D/g, ''); // "1"
+        let content = part.substring(colonIdx + 1).trim();
+        if (numMatch) stemMap[numMatch] = content;
+        else defaultList.push(content);
+      } else {
+        defaultList.push(part);
+      }
+    } else if (upper.startsWith('OPT_')) {
+      // 例如：OPT_C:<svg>...</svg>
+      let colonIdx = part.indexOf(':');
+      if (colonIdx !== -1) {
+        let optLetter = part.substring(4, colonIdx).trim().toUpperCase(); // "C"
+        let content = part.substring(colonIdx + 1).trim();
+        optMap[optLetter] = content;
+      } else {
+        defaultList.push(part);
+      }
+    } else {
+      defaultList.push(part);
+    }
+  });
+
+  return { stemMap, optMap, defaultList };
+}
+
+function parseOptionContent(optText, q, optKey) {
   if (!optText) return '';
   let text = String(optText);
+  let parsedSvg = parseSvgCode(q.svg_code);
+
+  // 1. 檢查選項是否包含 [IMG] 或 [IMAGE]
+  if (text.includes('[IMG]') || text.includes('[IMAGE]')) {
+    let optSvg = parsedSvg.optMap[optKey] || '';
+    if (!optSvg && parsedSvg.defaultList.length > 0) {
+      let optIdx = {'A':0, 'B':1, 'C':2, 'D':3}[optKey] || 0;
+      optSvg = parsedSvg.defaultList[optIdx] || parsedSvg.defaultList[0] || '';
+    }
+    
+    if (optSvg) {
+      let displaySvg = optSvg;
+      if (!displaySvg.startsWith('<') && !displaySvg.startsWith('http')) {
+        // 純文字或網址
+      } else if (!displaySvg.startsWith('<')) {
+        displaySvg = `<img src="${displaySvg}" alt="選項圖形">`;
+      }
+      text = text.replace(/\[IMG\]|\[IMAGE\]/g, `<div class="opt-img-container">${displaySvg}</div>`);
+    }
+  }
+
+  // 2. 舊格式兼容
   if (text.includes('[IMAGE:')) {
     text = text.replace(/\[IMAGE:(.*?)\]/g, '<div class="opt-img-container"><img src="$1" alt="選項圖形"></div>');
   }
   if (text.includes('[SVG:')) {
     text = text.replace(/\[SVG:(.*?)\]/g, '<div class="opt-img-container">$1</div>');
   }
+
   return text;
 }
 
@@ -791,33 +855,37 @@ function renderQuiz(questions) {
     const userAns = userAnswers[index];
 
     let stemContent = q.stem || '（無題幹）';
-    let svgCodesRaw = q.svg_code ? q.svg_code.split('|||') : [];
+    let parsedSvg = parseSvgCode(q.svg_code);
     let hasReplaced = false;
 
-    if (svgCodesRaw.length > 0) {
-      if (stemContent.includes('[IMAGE1]') || stemContent.includes('[IMAGE2]')) {
-        svgCodesRaw.forEach((svgPart, sIdx) => {
-          let tagNum = sIdx + 1;
-          let targetTag = `[IMAGE${tagNum}]`;
-          let wrappedSvg = `<div class="q-svg-container">${svgPart.trim()}</div>`;
-          if (stemContent.includes(targetTag)) {
-            stemContent = stemContent.split(targetTag).join(wrappedSvg);
-            hasReplaced = true;
-          }
-        });
-      } else if (stemContent.includes('[IMAGE]')) {
-        let wrappedSvg = `<div class="q-svg-container">${svgCodesRaw[0].trim()}</div>`;
-        stemContent = stemContent.split('[IMAGE]').join(wrappedSvg);
+    // 替換題幹中的 [IMAGE1], [IMAGE2] 或 [IMAGE]
+    Object.keys(parsedSvg.stemMap).forEach(num => {
+      let targetTag = `[IMAGE${num}]`;
+      let targetTag2 = `[STEM${num}]`;
+      let svgHtml = `<div class="q-svg-container">${parsedSvg.stemMap[num]}</div>`;
+      if (stemContent.includes(targetTag)) {
+        stemContent = stemContent.split(targetTag).join(svgHtml);
+        hasReplaced = true;
+      }
+      if (stemContent.includes(targetTag2)) {
+        stemContent = stemContent.split(targetTag2).join(svgHtml);
+        hasReplaced = true;
+      }
+    });
+
+    if (!hasReplaced && stemContent.includes('[IMAGE]')) {
+      let firstSvg = parsedSvg.stemMap['1'] || parsedSvg.defaultList[0] || '';
+      if (firstSvg) {
+        let svgHtml = `<div class="q-svg-container">${firstSvg}</div>`;
+        stemContent = stemContent.split('[IMAGE]').join(svgHtml);
         hasReplaced = true;
       }
     }
 
     let bottomSvgHtml = '';
-    if (!hasReplaced && svgCodesRaw.length > 0) {
-      svgCodesRaw.forEach(svgPart => {
-        if (svgPart.trim()) {
-          bottomSvgHtml += `<div class="q-svg-container">${svgPart.trim()}</div>`;
-        }
+    if (!hasReplaced && parsedSvg.defaultList.length > 0) {
+      parsedSvg.defaultList.forEach(part => {
+        bottomSvgHtml += `<div class="q-svg-container">${part}</div>`;
       });
     }
 
@@ -837,12 +905,11 @@ function renderQuiz(questions) {
     
     html += `<div class="options" data-qindex="${index}">`;
     ['A', 'B', 'C', 'D'].forEach(optKey => {
-      // 確保使用正確且一致的變數名稱 optValRaw
       const optValRaw = q['opt_' + optKey.toLowerCase()];
-      if (optValRaw !== undefined && optValRaw !== null && optValRaw !== "") {
+      if (optValRaw !== undefined && optVal !== null && optValRaw !== "") {
         const isSelected = (userAns === optKey);
         let optStyle = isSelected ? "background:var(--accent-light); border-color:var(--accent); font-weight:bold;" : "";
-        const parsedOptContent = parseOptionContent(optValRaw);
+        const parsedOptContent = parseOptionContent(optValRaw, q, optKey);
         
         html += `
           <label class="opt" style="${optStyle}">
@@ -1071,33 +1138,36 @@ function enterFourthLayerReview() {
     const fullCategoryLabel = `${domainTag} - ${unitTag}`;
 
     let stemContent = q.stem || '（無題幹）';
-    let svgCodesRaw = q.svg_code ? q.svg_code.split('|||') : [];
+    let parsedSvg = parseSvgCode(q.svg_code);
     let hasReplaced = false;
 
-    if (svgCodesRaw.length > 0) {
-      if (stemContent.includes('[IMAGE1]') || stemContent.includes('[IMAGE2]')) {
-        svgCodesRaw.forEach((svgPart, sIdx) => {
-          let tagNum = sIdx + 1;
-          let targetTag = `[IMAGE${tagNum}]`;
-          let wrappedSvg = `<div class="q-svg-container">${svgPart.trim()}</div>`;
-          if (stemContent.includes(targetTag)) {
-            stemContent = stemContent.split(targetTag).join(wrappedSvg);
-            hasReplaced = true;
-          }
-        });
-      } else if (stemContent.includes('[IMAGE]')) {
-        let wrappedSvg = `<div class="q-svg-container">${svgCodesRaw[0].trim()}</div>`;
-        stemContent = stemContent.split('[IMAGE]').join(wrappedSvg);
+    Object.keys(parsedSvg.stemMap).forEach(num => {
+      let targetTag = `[IMAGE${num}]`;
+      let targetTag2 = `[STEM${num}]`;
+      let svgHtml = `<div class="q-svg-container">${parsedSvg.stemMap[num]}</div>`;
+      if (stemContent.includes(targetTag)) {
+        stemContent = stemContent.split(targetTag).join(svgHtml);
         hasReplaced = true;
+      }
+      if (stemContent.includes(targetTag2)) {
+        stemContent = stemContent.split(targetTag2).join(svgHtml);
+        hasReplaced = true;
+      }
+    });
+
+    if (!hasReplaced && stemContent.includes('[IMAGE]')) {
+      let firstSvg = parsedSvg.stemMap['1'] || parsedSvg.defaultList[0] || '';
+      if (firstSvg) {
+        let svgHtml = `<div class="q-svg-container">${firstSvg}</div>`;
+        stemContent = stemContent.split('[IMAGE]').join(svgHtml);
+        hasRereplaced = true;
       }
     }
 
     let bottomSvgHtml = '';
-    if (!hasReplaced && svgCodesRaw.length > 0) {
-      svgCodesRaw.forEach(svgPart => {
-        if (svgPart.trim()) {
-          bottomSvgHtml += `<div class="q-svg-container">${svgPart.trim()}</div>`;
-        }
+    if (!hasReplaced && parsedSvg.defaultList.length > 0) {
+      parsedSvg.defaultList.forEach(part => {
+        bottomSvgHtml += `<div class="q-svg-container">${part}</div>`;
       });
     }
 
@@ -1140,7 +1210,7 @@ function enterFourthLayerReview() {
         let optStyle = "";
         if (isRightAnswer) optStyle = "border-color:var(--primary); background:rgba(78,204,163,0.15); font-weight:bold;";
         else if (isSelected && !isRightAnswer) optStyle = "border-color:var(--accent); background:rgba(255,107,107,0.15); font-weight:bold;";
-        const parsedOptContent = parseOptionContent(optValRaw);
+        const parsedOptContent = parseOptionContent(optValRaw, q, optKey);
 
         html += `
           <div class="opt" style="${optStyle}">
