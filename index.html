@@ -74,11 +74,11 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   100% { transform: translateX(-50%) translateY(0); } 
 }
 
-/* 開場動畫 */
+/* 🚀 震撼、超大火箭超越框線與密集流星雨的開場動畫 */
 #intro-overlay {
-  position: fixed; inset: 0; background: #05070c; z-index: 9999;
+  position: fixed; inset: 0; background: #05070c; z-index: 99999;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  overflow: hidden; animation: gbaFadeOut 0.8s ease 2.2s forwards; pointer-events: none;
+  overflow: hidden; animation: gbaFadeOut 0.8s ease 2.6s forwards; pointer-events: none;
 }
 .space-sky { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .shooting-star {
@@ -89,6 +89,10 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .shooting-star:nth-child(1) { top: 5%; left: 85%; animation-delay: 0.05s; animation-duration: 0.9s; }
 .shooting-star:nth-child(2) { top: 25%; left: 95%; animation-delay: 0.3s; animation-duration: 1.2s; }
 .shooting-star:nth-child(3) { top: 10%; left: 50%; animation-delay: 0.7s; animation-duration: 0.8s; }
+.shooting-star:nth-child(4) { top: 50%; left: 100%; animation-delay: 0.2s; animation-duration: 1.0s; }
+.shooting-star:nth-child(5) { top: 75% ; left: 60%; animation-delay: 0.5s; animation-duration: 1.3s; }
+.shooting-star:nth-child(6) { top: 15%; left: 20%; animation-delay: 0.9s; animation-duration: 0.7s; }
+
 @keyframes starShoot {
   0% { transform: translateX(0) translateY(0) rotate(-45deg); opacity: 1; }
   100% { transform: translateX(-600px) translateY(600px) rotate(-45deg); opacity: 0; }
@@ -291,15 +295,20 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .gba-grid-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 24px 24px; }
 </style>
 </head>
-<body onload="checkLoginState()">
+<body onload="initApp()">
 
 <div class="gba-grid-bg" aria-hidden="true"></div>
 <div class="wave-bg-container" aria-hidden="true"><div class="wave"></div><div class="wave"></div></div>
 
-<!-- 開場動畫 -->
+<!-- 🚀 震撼、超大火箭超越框線與密集流星雨的開場動畫 -->
 <div id="intro-overlay">
   <div class="space-sky">
-    <div class="shooting-star"></div><div class="shooting-star"></div><div class="shooting-star"></div>
+    <div class="shooting-star"></div>
+    <div class="shooting-star"></div>
+    <div class="shooting-star"></div>
+    <div class="shooting-star"></div>
+    <div class="shooting-star"></div>
+    <div class="shooting-star"></div>
   </div>
   <div class="rocket-launch-box">
     <div class="rocket-icon">🚀</div>
@@ -309,8 +318,8 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   </div>
 </div>
 
-<!-- 登入驗證彈跳視窗 -->
-<div class="modal-overlay show" id="loginModal" style="background:rgba(5,7,12,0.92); z-index:99999;">
+<!-- 登入驗證彈跳視窗（火箭動畫結束後自動彈出） -->
+<div class="modal-overlay" id="loginModal" style="background:rgba(5,7,12,0.92); z-index:99999;">
   <div class="modal-content" style="max-width:420px; text-align:center; border:3px solid var(--primary);">
     <div style="font-size:3rem; margin-bottom:8px;">🌱</div>
     <h2 style="color:var(--primary); margin-bottom:6px;">GBA 智慧練功房</h2>
@@ -318,12 +327,12 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
     
     <div class="form-group" style="margin-bottom:12px; text-align:left;">
       <label style="font-size:0.85rem; font-weight:bold;">考生暱稱（英數字，區分大小寫）</label>
-      <input type="text" id="loginUser" placeholder="例如：Casper96" style="width:100%; padding:10px; border:2px solid var(--border-color); border-radius:8px; background:var(--bg-color); color:var(--text-main); margin-top:4px;">
+      <input type="text" id="loginUser" placeholder="例如：Teacher01" style="width:100%; padding:10px; border:2px solid var(--border-color); border-radius:8px; background:var(--bg-color); color:var(--text-main); margin-top:4px;">
     </div>
     
     <div class="form-group" style="margin-bottom:20px; text-align:left;">
       <label style="font-size:0.85rem; font-weight:bold;">密碼（生日月日共 4 碼）</label>
-      <input type="password" id="loginPwd" maxlength="4" placeholder="例如：0930" style="width:100%; padding:10px; border:2px solid var(--border-color); border-radius:8px; background:var(--bg-color); color:var(--text-main); margin-top:4px;">
+      <input type="password" id="loginPwd" maxlength="4" placeholder="例如：1234" style="width:100%; padding:10px; border:2px solid var(--border-color); border-radius:8px; background:var(--bg-color); color:var(--text-main); margin-top:4px;">
     </div>
 
     <button type="button" class="btn-start" onclick="handleLogin()" style="margin-bottom:10px;">🚀 登入 / 註冊練功</button>
@@ -331,7 +340,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   </div>
 </div>
 
-<!-- ✨ 微學習開場彈跳視窗（動畫結束後彈出） -->
+<!-- ✨ 微學習開場彈跳視窗 -->
 <div class="modal-overlay" id="microQuizModal">
   <div class="modal-content" style="max-width:440px; text-align:center;">
     <div style="font-size:2.8rem; margin-bottom:6px;">⚡</div>
@@ -585,12 +594,15 @@ let warned10M = false;
 let warned3M = false;
 let pendingSelectedUnits = [];
 
-/* 登入與訪客狀態控管 */
-function checkLoginState() {
+/* 初始化：等火箭開場動畫結束（2.6秒）後，才顯示登入視窗 */
+function initApp() {
   setTimeout(() => {
     const overlay = document.getElementById('intro-overlay');
     if (overlay) overlay.style.display = 'none';
-  }, 2200);
+    
+    // 顯示登入彈跳視窗
+    document.getElementById('loginModal').classList.add('show');
+  }, 2500);
 }
 
 function handleLogin() {
@@ -808,7 +820,6 @@ function initQuiz(mode, val) {
       
       renderQuiz(questionsData);
 
-      // 單題模式不計時
       if (mode !== 'single_random') {
         isQuizActive = true;
         updateTimerVisibility();
@@ -1016,7 +1027,6 @@ function confirmBackToHome() {
   document.getElementById('alertModal').classList.add('show');
 }
 
-/* 提交考卷與 AI 角色中繼呼叫 */
 function submitQuiz(isAuto = false) {
   const name = (currentMode === 'single_random') ? '訪客' : document.getElementById('sName').value.trim();
   if (!isAuto && currentMode !== 'single_random' && !name) { alert('請輸入您的姓名再交卷！'); return; }
@@ -1043,7 +1053,6 @@ function submitQuiz(isAuto = false) {
   const realScore52 = correctCount * 2;
   lastExamResults = { name: name || '匿名', score100: finalScore100, realScore52, correctCount, totalQ, domainStats };
 
-  // 若為單題微學習模式，直接呼叫 AI 角色 1 產生三階段詳解
   if (currentMode === 'single_random') {
     renderSingleAiFeedback(questionsData[0], userAnswers[0]);
     return;
@@ -1057,10 +1066,8 @@ function submitQuiz(isAuto = false) {
   renderLineChart(domainStats);
   document.getElementById('reportModal').classList.add('show');
 
-  // 呼叫 AI 角色 2：第三層本次測驗引導教練
   fetchAiCoachFeedback(finalScore100, domainStats);
 
-  // 若非訪客，寫入雲端紀錄
   if (currentUser && !currentUser.isGuest) {
     fetch(GAS_API_URL, {
       method: 'POST',
@@ -1077,7 +1084,6 @@ function submitQuiz(isAuto = false) {
   }
 }
 
-/* 渲染單題微學習的 AI 三階段詳解 */
 function renderSingleAiFeedback(q, uAns) {
   document.getElementById('view-quiz').classList.remove('active');
   document.getElementById('view-review').classList.add('active');
@@ -1099,17 +1105,11 @@ function renderSingleAiFeedback(q, uAns) {
   `;
   document.getElementById('review-container').innerHTML = html;
 
-  let prompt = `你是一位專精於臺灣國小教師檢定數學科的頂尖名師。請針對以下試題提供三階段解析：
-  題幹：${q.stem}
-  正確答案：${q.answer}
-  1. 🎯 核心考點定位 (1句話)
-  2. 💡 逐步拆解關鍵 (2-3個清晰步驟)
-  3. ⚠️ 考生避坑指南 (常考陷阱)
-  請保持繁體中文回答，結構清晰簡潔。`;
+  let prompt = `題幹：${q.stem}\n正確答案：${q.answer}\n請提供三階段解析：1.核心考點 2.逐步拆解 3.避坑指南。`;
 
   fetch(GAS_API_URL, {
     method: 'POST',
-    body: JSON.stringify({ action: 'call_gemini', prompt: prompt })
+    body: JSON.stringify({ action: 'call_gemini', role: 'single_question', prompt: prompt })
   })
   .then(res => res.json())
   .then(res => {
@@ -1121,18 +1121,13 @@ function renderSingleAiFeedback(q, uAns) {
   });
 }
 
-/* 呼叫 AI 角色 2：第三層本次測驗引導教練 */
 function fetchAiCoachFeedback(score, stats) {
   let statsStr = JSON.stringify(stats);
-  let prompt = `你是一位溫暖且洞察力敏銳的教檢備考陪伴教練。請根據考生本次測驗表現（總得分：${score}分，各領域表現：${statsStr}）：
-  1. 💪 強項肯定
-  2. 🔍 弱點突破口與具體行動建議
-  3. 🌱 教學思維叮嚀 (結合SEL或素養導向教學)
-  字數約200-300字，繁體中文回答。`;
+  let prompt = `總得分：${score}分，各領域表現：${statsStr}。請提供強項肯定、弱點突破口與教學思維叮嚀。`;
 
   fetch(GAS_API_URL, {
     method: 'POST',
-    body: JSON.stringify({ action: 'call_gemini', prompt: prompt })
+    body: JSON.stringify({ action: 'call_gemini', role: 'coach', prompt: prompt })
   })
   .then(res => res.json())
   .then(res => {
@@ -1170,7 +1165,6 @@ function renderLineChart(domainStats) {
 function openReportModal() { document.getElementById('reportModal').classList.add('show'); }
 function closeReportModalOnly() { document.getElementById('reportModal').classList.remove('show'); }
 
-/* 點擊個人頭像按鈕開啟第四層：總體學習歷程與諮詢師視窗 */
 function openProfileModal() {
   if (!currentUser || currentUser.isGuest) {
     alert('訪客模式無個人歷史紀錄，請登入專屬帳號以解鎖學習歷程！');
@@ -1218,18 +1212,13 @@ function renderHistoryChart(history) {
   });
 }
 
-/* 呼叫 AI 角色 3：第四層總體學習歷程諮詢師 */
 function fetchAiConsultantFeedback(history) {
   let historyStr = JSON.stringify(history);
-  let prompt = `你是一位深諳臺灣教師檢定規律的資深備考策略諮詢師。請分析使用者歷次測驗記錄（${historyStr}）：
-  1. 📈 成長軌跡評估
-  2. 🎯 核心失分熱點
-  3. 📅 衝刺建議與複習策略
-  繁體中文回答，具備洞察力與策略高度。`;
+  let prompt = `歷次測驗記錄：${historyStr}。請分析成長軌跡、失分熱點與衝刺建議。`;
 
   fetch(GAS_API_URL, {
     method: 'POST',
-    body: JSON.stringify({ action: 'call_gemini', prompt: prompt })
+    body: JSON.stringify({ action: 'call_gemini', role: 'consultant', prompt: prompt })
   })
   .then(res => res.json())
   .then(res => {
