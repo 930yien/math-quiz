@@ -39,10 +39,24 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .wave { position: absolute; bottom: 0; left: 0; width: 250%; height: 180px; background: var(--wave-color); border-radius: 40% 60% 0 0 / 100% 100% 0 0; animation: waveMotion 7s infinite; }
 @keyframes waveMotion { 0% { transform: translateX(0); } 50% { transform: translateX(-25%); } 100% { transform: translateX(-50%); } }
 
+/* 火箭開場動畫 */
 #intro-overlay {
   position: fixed; inset: 0; background: #05070c; z-index: 99999;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   animation: gbaFadeOut 0.8s ease 2.6s forwards; pointer-events: none;
+}
+.space-sky { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.shooting-star {
+  position: absolute; width: 180px; height: 3px;
+  background: linear-gradient(90deg, rgba(255,255,255,1), rgba(78,204,163,0));
+  transform: rotate(-45deg); opacity: 0; animation: starShoot 1.1s ease-in-out infinite;
+}
+.shooting-star:nth-child(1) { top: 5%; left: 85%; animation-delay: 0.05s; }
+.shooting-star:nth-child(2) { top: 25%; left: 95%; animation-delay: 0.3s; }
+.shooting-star:nth-child(3) { top: 10%; left: 50%; animation-delay: 0.7s; }
+@keyframes starShoot {
+  0% { transform: translateX(0) translateY(0) rotate(-45deg); opacity: 1; }
+  100% { transform: translateX(-600px) translateY(600px) rotate(-45deg); opacity: 0; }
 }
 .rocket-launch-box { border: 4px double #4ecca3; padding: 30px 45px; background: #121620; box-shadow: 0 0 60px rgba(78,204,163,0.8); text-align: center; width: 460px; }
 .rocket-icon { font-size: 5.5rem; display: inline-block; animation: rocketBoost 1.5s infinite; filter: drop-shadow(0 0 20px #ff6b6b); }
@@ -80,7 +94,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 @keyframes blinkText { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 .floating-clock { position: fixed; bottom: 20px; left: 20px; z-index: 450; background: var(--card-bg); color: var(--primary); border: 3px solid var(--primary); border-radius: 12px; padding: 10px 16px; font-weight: 900; display: none; align-items: center; gap: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.45); }
 .floating-clock.show { display: flex !important; }
-.floating-clock.warning { background: #d90429 !important; color: #fff !important; border-color: #ffccd5 !important; }
 .q-header-meta { display: flex; justify-content: space-between; align-items: center; background: var(--accent-light); padding: 7px 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid var(--primary); }
 .q-num { background: var(--primary); color: #fff; border-radius: 4px; padding: 3px 8px; font-weight: bold; font-size: 0.85rem; }
 .q-title { font-size: 1.05rem; margin-bottom: 14px; line-height: 1.8; white-space: pre-line; }
@@ -109,7 +122,11 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 </head>
 <body onload="initApp()">
 
+<!-- 🚀 火箭開場動畫 -->
 <div id="intro-overlay">
+  <div class="space-sky">
+    <div class="shooting-star"></div><div class="shooting-star"></div><div class="shooting-star"></div>
+  </div>
   <div class="rocket-launch-box">
     <div class="rocket-icon">🚀</div>
     <div style="font-size:13px; letter-spacing:4px; color:#a0aab2; font-weight:bold;">▶ GBA 復古街機啟動 ◀</div>
@@ -117,7 +134,8 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   </div>
 </div>
 
-<div class="modal-overlay show" id="loginModal" style="background:rgba(5,7,12,0.92); z-index:99999;">
+<!-- 🔐 登入彈跳視窗（動畫結束後出現） -->
+<div class="modal-overlay" id="loginModal" style="background:rgba(5,7,12,0.92); z-index:99999;">
   <div class="modal-content" style="max-width:420px; text-align:center; border:3px solid var(--primary);">
     <div style="font-size:3rem; margin-bottom:8px;">🌱</div>
     <h2 style="color:var(--primary); margin-bottom:6px;">GBA 智慧練功房</h2>
@@ -135,6 +153,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   </div>
 </div>
 
+<!-- ⚡ 微學習詢問視窗（登入後出現） -->
 <div class="modal-overlay" id="microQuizModal">
   <div class="modal-content" style="max-width:440px; text-align:center;">
     <div style="font-size:2.8rem; margin-bottom:6px;">⚡</div>
@@ -214,7 +233,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
       <h2>📋 應試基本資料</h2>
       <input type="text" id="sName" placeholder="請輸入您的姓名" style="width:100%; padding:9px; border:2px solid var(--border-color); border-radius:8px; background:var(--card-bg); color:var(--text-main);">
     </div>
-    <div id="quiz-container"><div class="card">載入中...</div></div>
+    <div id="quiz-container"><div class="card">載入試題中...</div></div>
     <div id="submit-area-wrap" style="display:none; text-align:center; margin-top:22px;">
       <button type="button" class="btn-submit" onclick="submitQuiz()">交卷看成績與分析報告</button>
     </div>
@@ -282,6 +301,7 @@ let currentUser = null, questionsData = [], userAnswers = {}, starredQuestions =
 let timeLeft = 30 * 60, timerInterval = null, timerStyle = 'embedded', isQuizActive = false;
 let currentMode = '', currentVal = '', lineChartInstance = null, historyChartInstance = null;
 
+/* 🚀 步驟 1：先播火箭動畫，2.5秒後才彈出登入視窗 */
 function initApp() {
   setTimeout(() => {
     document.getElementById('intro-overlay').style.display = 'none';
@@ -289,6 +309,7 @@ function initApp() {
   }, 2500);
 }
 
+/* 🔐 登入成功後，才進入下一步驟（⚡ 步驟 3：問要不要抽隨機一題） */
 function handleLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPwd').value.trim();
@@ -381,23 +402,24 @@ function initQuiz(mode, val) {
   });
 }
 
-/* 💡 優化 1：在題目呈現「第 1 大題 ｜ 第 X 題」 */
 function renderQuiz(questions) {
-  let sectionTitle = "綜合測驗";
-  if (currentMode === 'single_random') sectionTitle = "隨機一題微學習";
-  else if (currentMode === 'random') sectionTitle = "隨機閃電題特訓";
-  else if (currentMode === 'year') sectionTitle = `歷屆試題 (${currentVal})`;
-  else if (currentMode === 'unit') sectionTitle = `單元主題特訓`;
-
   let html = `<div style="background:var(--primary); color:#fff; border-radius:8px 8px 0 0; padding:11px 18px; font-weight:700;">數學能力測驗（共 ${questions.length} 題）</div>`;
+  
   questions.forEach((q, index) => {
     const qNum = index + 1;
     const userAns = userAnswers[index];
+    
+    let sourceYearTag = "";
+    if (currentMode !== 'year' && q.year) {
+      let specificNum = q.question_num || q.q_id || '';
+      sourceYearTag = ` ｜ ${q.year}學年度${specificNum ? ' 第 ' + specificNum + ' 題' : ''}`;
+    }
+
     html += `
       <div class="card" style="border:2px solid var(--border-color); padding:18px; margin-bottom:15px;">
         <div class="q-header-meta">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span class="q-num">第 1 大題 ｜ 第 ${qNum} 題</span>
+            <span class="q-num">第 ${qNum} 題${sourceYearTag}</span>
             <span class="q-status ${userAns !== undefined && userAns !== null && userAns !== "" ? 'done' : ''}" id="s${qNum}">${userAns !== undefined && userAns !== null && userAns !== "" ? '已作答' : '未作答'}</span>
           </div>
         </div>
@@ -456,14 +478,12 @@ function showAlertModal(title, msg) {
 function closeAlertModal() { document.getElementById('alertModal').classList.remove('show'); }
 function confirmBackToHome() { backToHome(); }
 
-/* 💡 優化 4：交卷並鎖定作答區，移除可能導致重複交卷的漏洞 */
 function submitQuiz(isAuto = false) {
   const name = (currentMode === 'single_random') ? '訪客' : document.getElementById('sName').value.trim();
   if (!isAuto && currentMode !== 'single_random' && !name) { alert('請輸入您的姓名再交卷！'); return; }
   if (timerInterval) clearInterval(timerInterval);
   isQuizActive = false;
   
-  // 鎖定交卷按鈕，防止重複交卷
   const submitBtn = document.querySelector('.btn-submit');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "已完成交卷"; submitBtn.style.opacity = "0.6"; }
 
@@ -500,7 +520,6 @@ function submitQuiz(isAuto = false) {
   renderLineChart(domainStats);
   document.getElementById('reportModal').classList.add('show');
 
-  // 💡 優化 2 & 3：呼叫 AI 角色 2 取得三階段引導與健檢回饋
   fetchAiCoachFeedback(finalScore100, domainStats, wrongItemsDetails);
 
   if (currentUser && !currentUser.isGuest) {
@@ -511,7 +530,6 @@ function submitQuiz(isAuto = false) {
   }
 }
 
-/* 💡 修正 AI 呼叫並確保回傳三階段解題路徑 */
 function renderSingleAiFeedback(q, uAns) {
   document.getElementById('view-quiz').classList.remove('active');
   document.getElementById('view-review').classList.add('active');
@@ -674,8 +692,7 @@ function enterFourthLayerReview() {
 
 function toggleAccordion(btn) {
   const content = btn.nextElementSibling;
-  content.classList.toggle('show');
-  btn.querySelector('span:last-child').textContent = content.classList.contains('show') ? '▴' : '▾';
+  content.classList.contains('show') ? content.classList.remove('show') : content.classList.add('show');
 }
 
 function triggerMathJax() { if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise().catch(()=>{}); }
