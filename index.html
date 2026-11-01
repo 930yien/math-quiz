@@ -552,14 +552,24 @@ function renderSingleQuizView(q) {
   document.getElementById('quiz-header-bar').style.display = 'none';
   document.getElementById('student-info-card').style.display = 'none';
 
+  // 💡 動態解析年度與題號標籤
+  let sourceYearTag = "";
+  if (q.year) {
+    let specificNum = "";
+    if (q.q_id) {
+      let match = String(q.q_id).match(/(\d+)$/);
+      if (match) specificNum = parseInt(match[1], 10);
+    }
+    sourceYearTag = ` ｜ ${q.year}學年度${specificNum ? `第 ${specificNum} 題` : ''}`;
+  }
+
   const { stemContent, bottomSvgHtml } = buildStemAndSvgHtml(q);
   let html = `
     <div class="card" style="border:2px solid var(--primary); padding:20px;">
       <div class="q-header-meta">
-        <span class="q-num">⚡ 每日微學習・隨機特訓</span>
+        <span class="q-num">⚡ 每日微學習・隨機特訓${sourceYearTag}</span>
         <button type="button" class="ctrl-btn" onclick="backToHome()">返回首頁</button>
       </div>
-      <div class="q-title">${stemContent}</div>`;
   if (bottomSvgHtml) html += bottomSvgHtml;
 
   html += `<div class="options" id="single-options-box">`;
