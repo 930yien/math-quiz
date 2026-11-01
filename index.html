@@ -608,7 +608,7 @@ function checkSingleAnswer(selectedOpt, correctOpt) {
   fetchSingleAiExplanationWithRetry(questionsData[0], selectedOpt);
 }
 
-// ⚡ 智慧自動重試機制封裝函式（應付 high demand 壅塞自動等待重試）
+// ⚡ 智慧自動重試機制（Retry）
 function fetchWithRetry(url, options, maxRetries = 3, delay = 5000) {
   return new Promise((resolve, reject) => {
     function attempt(n) {
