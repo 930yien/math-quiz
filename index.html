@@ -24,7 +24,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .wave { position: absolute; bottom: 0; left: 0; width: 250%; height: 180px; background: var(--wave-color); border-radius: 40% 60% 0 0 / 100% 100% 0 0; animation: waveMotion 7s infinite; }
 @keyframes waveMotion { 0% { transform: translateX(0); } 50% { transform: translateX(-25%); } 100% { transform: translateX(-50%); } }
 
-/* 🚀 震撼、流星雨與火箭開場動畫 */
 #intro-overlay {
   position: fixed; inset: 0; background: #05070c; z-index: 99999;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -44,7 +43,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   0% { transform: translateX(0) translateY(0) rotate(-45deg); opacity: 1; }
   100% { transform: translateX(-600px) translateY(600px) rotate(-45deg); opacity: 0; }
 }
-
 .rocket-launch-box { border: 4px double #4ecca3; padding: 30px 45px; background: #121620; box-shadow: 0 0 60px rgba(78,204,163,0.8); text-align: center; width: 460px; }
 .rocket-icon { font-size: 5.5rem; display: inline-block; animation: rocketBoost 1.5s infinite; filter: drop-shadow(0 0 20px #ff6b6b); }
 @keyframes rocketBoost { 0%, 100% { transform: translateY(20px); } 50% { transform: translateY(-20px); } }
@@ -121,10 +119,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 <!-- 🚀 火箭開場動畫與流星雨 -->
 <div id="intro-overlay">
   <div class="space-sky">
-    <div class="shooting-star"></div>
-    <div class="shooting-star"></div>
-    <div class="shooting-star"></div>
-    <div class="shooting-star"></div>
+    <div class="shooting-star"></div><div class="shooting-star"></div><div class="shooting-star"></div><div class="shooting-star"></div>
   </div>
   <div class="rocket-launch-box">
     <div class="rocket-icon">🚀</div>
@@ -184,11 +179,9 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 </div>
 
 <div class="container">
-  <!-- 第一層主選單 -->
   <div id="view-mode-select" class="view-section">
     <div class="blessing-banner">✨ <strong>展望明年6月：</strong> 教檢一定過！</div>
     <div class="modes-grid">
-      <!-- 隨機閃電題 -->
       <div class="mode-card">
         <div><h3>⚡ 隨機閃電題</h3><p>完全均等亂數抽題，快速檢驗綜合反應。</p></div>
         <div>
@@ -196,7 +189,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
           <button type="button" class="btn-start accent" style="margin-top:12px;" onclick="initQuiz('random', document.getElementById('limitSelect').value)">開始隨機特訓</button>
         </div>
       </div>
-      <!-- 歷屆試題 -->
       <div class="mode-card">
         <div><h3>📅 歷屆試題</h3><p>選擇特定年度教檢試題，完整體驗實戰臨場感。</p></div>
         <div>
@@ -204,15 +196,14 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
           <button type="button" class="btn-start" style="margin-top:12px;" onclick="initQuiz('year', document.getElementById('yearSelect').value)">開始年度測驗</button>
         </div>
       </div>
-      <!-- 主題選題 -->
       <div class="mode-card">
         <div><h3>📚 主題選題</h3><p>勾選多個單元或全範圍，系統自動智慧出題。</p></div>
         <div>
           <div class="dropdown-select-wrapper" id="dropdownWrapper">
             <button type="button" class="dropdown-toggle-btn" onclick="toggleDropdown(event)"><span id="dropdownLabel">請選擇單元</span> ▾</button>
             <div class="dropdown-menu-box" id="dropdownMenu">
-              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="普通數學" onchange="updateDropdownLabel()"> 📐 普通數學（全範圍）</label>
-              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="教材教法" onchange="updateDropdownLabel()"> 🍎 教材教法（全範圍）</label>
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="普通數學" onchange="updateDropdownLabel()"> 📐 普通數學</label>
+              <label class="checkbox-item"><input type="checkbox" name="unitCheckbox" value="教材教法" onchange="updateDropdownLabel()"> 🍎 教材教法</label>
             </div>
           </div>
           <button type="button" class="btn-start" onclick="checkAndInitMultiUnitQuiz()">開始多選單元特訓</button>
@@ -221,7 +212,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
     </div>
   </div>
 
-  <!-- 第二層作答區 -->
   <div id="view-quiz" class="view-section">
     <div class="quiz-top-bar" id="quiz-header-bar">
       <div class="timer-label" id="timer-embedded-box">⏱ 剩餘時間: <span id="timer-embedded">30:00</span></div>
@@ -241,7 +231,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
     </div>
   </div>
 
-  <!-- 錯題檢討區 -->
   <div id="view-review" class="view-section">
     <div class="quiz-top-bar" style="background:var(--primary-dark); color:#fff;">
       <div><h3 id="review-title">🔍 檢討錯題</h3><p id="review-score-summary" style="font-size:0.85rem;"></p></div>
@@ -251,7 +240,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   </div>
 </div>
 
-<!-- 第三層結算報告 Modal -->
 <div class="modal-overlay" id="reportModal">
   <div class="modal-content">
     <div class="score-banner">
@@ -271,7 +259,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   </div>
 </div>
 
-<!-- 個人資料 Modal -->
 <div class="modal-overlay" id="profileModal">
   <div class="modal-content" style="max-width:760px;">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--border-color); padding-bottom:10px; margin-bottom:15px;">
@@ -296,7 +283,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 </div>
 
 <script>
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxRgkjMYYuZntOeeQaTgzU_E9K5gc5KznLniaGgfyre5yeZK7vH_GKbA0t1RyW2O6R4OQ/exec";
+const GAS_API_URL = "請填入你最新的 GAS 網頁應用程式網址";
 
 let currentUser = null, questionsData = [], userAnswers = {}, starredQuestions = {}, lastExamResults = null;
 let timeLeft = 30 * 60, timerInterval = null, timerStyle = 'embedded', isQuizActive = false;
@@ -503,7 +490,6 @@ function buildStemAndSvgHtml(q) {
   return { stemContent, bottomSvgHtml };
 }
 
-/* 💡 優化 2：精準從 q_id 擷取最後數字，呈現「XX學年度第XX題」 */
 function renderQuiz(questions) {
   let html = `<div style="background:var(--primary); color:#fff; border-radius:8px 8px 0 0; padding:11px 18px; font-weight:700;">數學能力測驗（共 ${questions.length} 題）</div>`;
   
@@ -664,6 +650,7 @@ function renderSingleAiFeedback(q, uAns) {
     </div>
   `;
   document.getElementById('review-container').innerHTML = html;
+  triggerMathJax(); // 確保渲染數學公式
 
   let prompt = `請針對以下國小教師檢定數學試題提供專業的三階段解題路徑：
 【題幹】${q.stem}
@@ -684,7 +671,7 @@ function renderSingleAiFeedback(q, uAns) {
     } else {
       document.getElementById('single-ai-text').innerHTML = `⚠️ 無法取得 AI 回饋：${res.message}`;
     }
-    triggerMathJax();
+    triggerMathJax(); // 確保 AI 回傳的 LaTeX 數學公式正常渲染
   })
   .catch(err => {
     document.getElementById('single-ai-text').textContent = 'AI 網路請求失敗：' + err.message;
@@ -700,6 +687,7 @@ function fetchAiCoachFeedback(score, stats, wrongItemsDetails) {
   .then(res => res.json())
   .then(res => {
     document.getElementById('ai-coach-content').innerHTML = (res.status === 'success') ? res.aiResponse.replace(/\n/g, '<br>') : `⚠️ 取得 AI 教練回饋失敗：${res.message}`;
+    triggerMathJax();
   })
   .catch(err => {
     document.getElementById('ai-coach-content').textContent = 'AI 網路請求失敗：' + err.message;
@@ -758,8 +746,10 @@ function fetchAiConsultantFeedback(history) {
   let prompt = `歷次測驗記錄：${JSON.stringify(history)}。請分析成長軌跡與衝刺建議。`;
   fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: 'call_gemini', role: 'consultant', prompt: prompt }) })
   .then(res => res.json()).then(res => {
-    document.getElementById('ai-consultant-content').innerHTML = (res.status === 'success') ? res.aiResponse.replace(/\n/g, './br').replace(/\n/g, '<br>') : `⚠️ 取得諮詢師回饋失敗：${res.message}`;
-  }).catch(err => {
+    document.getElementById('ai-consultant-content').innerHTML = (res.status === 'success') ? res.aiResponse.replace(/\n/g, '<br>') : `⚠️ 取得諮詢師回饋失敗：${res.message}`;
+    triggerMathJax();
+  })
+  .catch(err => {
     document.getElementById('ai-consultant-content').textContent = 'AI 網路請求失敗：' + err.message;
   });
 }
@@ -784,7 +774,7 @@ function enterFourthLayerReview() {
         </div>
         <div class="q-title">${q.stem}</div>
         <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border-color);">
-          <p style="font-weight:bold;">✅ 正確解答：(${q.answer}) ｜ 您的選擇：(${userAns || '未作答'})
+          <p style="font-weight:bold;">✅ 正確解答：(${q.answer}) ｜ 您的選擇：(${userAns || '未作答'})</p>
           <button type="button" class="accordion-btn" onclick="toggleAccordion(this)">
             <span>📖 展開三步驟詳解思路</span> <span>▾</span>
           </button>
@@ -805,7 +795,11 @@ function toggleAccordion(btn) {
   content.classList.toggle('show');
 }
 
-function triggerMathJax() { if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise().catch(()=>{}); }
+function triggerMathJax() { 
+  if (window.MathJax && window.MathJax.typesetPromise) { 
+    window.MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err)); 
+  } 
+}
 </script>
 </body>
 </html>
