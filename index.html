@@ -546,7 +546,6 @@ function renderQuiz(questions) {
   triggerMathJax();
 }
 
-// ⚡ 修正：隨機單題微學習模式的完整版型渲染與 AI 串接
 function renderSingleQuizView(q) {
   document.getElementById('view-mode-select').classList.remove('active');
   document.getElementById('view-quiz').classList.add('active');
@@ -602,14 +601,44 @@ function checkSingleAnswer(selectedOpt, correctOpt) {
       box.style.background = 'rgba(255,107,107,0.25)';
       box.style.borderColor = 'var(--accent)';
     }
-    box.style.pointerEvents = 'none'; // 鎖定點擊
+    box.style.pointerEvents = 'none';
   });
 
   document.getElementById('single-ai-result-area').style.display = 'block';
-  fetchSingleAiExplanation(questionsData[0], selectedOpt);
+  fetchSingleAiExplanationWithRetry(questionsData[0], selectedOpt);
 }
 
-function fetchSingleAiExplanation(q, userAns) {
+// ⚡ 智慧自動重試機制封裝函式（應付 high demand 壅塞自動等待重試）
+function fetchWithRetry(url, options, maxRetries = 3, delay = 5000) {
+  return new Promise((resolve, reject) => {
+    function attempt(n) {
+      fetch(url, options)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'error' && res.message && (res.message.includes('high demand') || res.message.includes('experiencing high demand')) && n > 0) {
+            console.warn(`Gemini 伺服器尖峰忙碌中，${delay / 1000}秒後自動重新發送請求（剩餘嘗試次數: ${n}）...`);
+            const statusEl = document.getElementById('single-ai-text') || document.getElementById('ai-coach-content') || document.getElementById('ai-consultant-content');
+            if (statusEl) {
+              statusEl.innerHTML = `🔄 伺服器目前流量較高（High Demand），系統將於 ${delay / 1000} 秒後自動重新請求（剩餘重試次數: ${n}）...`;
+            }
+            setTimeout(() => attempt(n - 1), delay);
+          } else {
+            resolve(res);
+          }
+        })
+        .catch(err => {
+          if (n > 0) {
+            setTimeout(() => attempt(n - 1), delay);
+          } else {
+            reject(err);
+          }
+        });
+    }
+    attempt(maxRetries);
+  });
+}
+
+function fetchSingleAiExplanationWithRetry(q, userAns) {
   let prompt = `請針對以下國小教師檢定數學試題提供專業的三階段解題路徑：
 【題幹】${q.stem}
 【正確答案】(${q.answer})
@@ -619,11 +648,10 @@ function fetchSingleAiExplanation(q, userAns) {
 2. 💡 逐步拆解關鍵 (Step 1, Step 2 條列式)
 3. ⚠️ 考生避坑指南`;
 
-  fetch(GAS_API_URL, {
+  fetchWithRetry(GAS_API_URL, {
     method: 'POST',
     body: JSON.stringify({ action: 'call_gemini', role: 'single_question', prompt: prompt })
-  })
-  .then(res => res.json())
+  }, 3, 5000)
   .then(res => {
     if (res.status === 'success') {
       document.getElementById('single-ai-text').innerHTML = formatMarkdownToHtml(res.aiResponse);
@@ -714,7 +742,7 @@ function submitQuiz(isAuto = false) {
 
   renderLineChart(domainStats);
   document.getElementById('reportModal').classList.add('show');
-  fetchAiCoachFeedback(finalScore100, domainStats, wrongItemsDetails);
+  fetchAiCoachFeedbackWithRetry(finalScore100, domainStats, wrongItemsDetails);
 
   if (currentUser && !currentUser.isGuest) {
     fetch(GAS_API_URL, {
@@ -724,13 +752,12 @@ function submitQuiz(isAuto = false) {
   }
 }
 
-function fetchAiCoachFeedback(score, stats, wrongItemsDetails) {
+function fetchAiCoachFeedbackWithRetry(score, stats, wrongItemsDetails) {
   let prompt = `本次測驗總得分：${score}分。各領域統計：${JSON.stringify(stats)}。錯題明細：${JSON.stringify(wrongItemsDetails)}。請給予引導教練健檢報告。`;
-  fetch(GAS_API_URL, {
+  fetchWithRetry(GAS_API_URL, {
     method: 'POST',
     body: JSON.stringify({ action: 'call_gemini', role: 'coach', prompt: prompt })
-  })
-  .then(res => res.json())
+  }, 3, 5000)
   .then(res => {
     document.getElementById('ai-coach-content').innerHTML = (res.status === 'success') ? formatMarkdownToHtml(res.aiResponse) : `⚠️ 取得 AI 教練回饋失敗：${res.message}`;
     triggerMathJax();
@@ -765,7 +792,7 @@ function openProfileModal() {
   .then(res => res.json()).then(res => {
     if (res.status === 'success') {
       renderHistoryChart(res.history);
-      fetchAiConsultantFeedback(res.history);
+      fetchAiConsultantFeedbackWithRetry(res.history);
     }
   });
 }
@@ -788,10 +815,10 @@ function renderHistoryChart(history) {
   });
 }
 
-function fetchAiConsultantFeedback(history) {
+function fetchAiConsultantFeedbackWithRetry(history) {
   let prompt = `歷次測驗記錄：${JSON.stringify(history)}。請分析成長軌跡與衝刺建議。`;
-  fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: 'call_gemini', role: 'consultant', prompt: prompt }) })
-  .then(res => res.json()).then(res => {
+  fetchWithRetry(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: 'call_gemini', role: 'consultant', prompt: prompt }) }, 3, 5000)
+  .then(res => {
     document.getElementById('ai-consultant-content').innerHTML = (res.status === 'success') ? formatMarkdownToHtml(res.aiResponse) : `⚠️ 取得諮詢師回饋失敗：${res.message}`;
     triggerMathJax();
   })
@@ -800,7 +827,6 @@ function fetchAiConsultantFeedback(history) {
   });
 }
 
-// ⚡ 修正：第四頁檢討詳解，展開時即時呼叫 Gemini AI 取得三階段動態解析
 function enterFourthLayerReview() {
   document.getElementById('reportModal').classList.remove('show');
   document.getElementById('view-quiz').classList.remove('active');
@@ -859,11 +885,10 @@ function toggleAccordionAndFetchAI(btn, qIndex) {
 2. 💡 逐步拆解關鍵 (Step 1, Step 2 條列式)
 3. ⚠️ 考生避坑指南`;
 
-    fetch(GAS_API_URL, {
+    fetchWithRetry(GAS_API_URL, {
       method: 'POST',
       body: JSON.stringify({ action: 'call_gemini', role: 'single_question', prompt: prompt })
-    })
-    .then(res => res.json())
+    }, 3, 5000)
     .then(res => {
       if (res.status === 'success') {
         document.getElementById(`review-ai-content-${qIndex}`).innerHTML = formatMarkdownToHtml(res.aiResponse);
@@ -878,12 +903,6 @@ function toggleAccordionAndFetchAI(btn, qIndex) {
   }
 }
 
-function toggleAccordion(btn) {
-  const content = btn.nextElementSibling;
-  content.classList.toggle('show');
-}
-
-// ⚡ 簡易 Markdown 格式化轉譯器（將 ###、** 轉換為合適的 HTML 標籤，解決原始碼外露問題）
 function formatMarkdownToHtml(text) {
   if (!text) return '';
   let formatted = text
