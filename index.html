@@ -283,7 +283,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 </div>
 
 <script>
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxRgkjMYYuZntOeeQaTgzU_E9K5gc5KznLniaGgfyre5yeZK7vH_GKbA0t1RyW2O6R4OQ/exec";
+const GAS_API_URL = "請填入你最新的 GAS 網頁應用程式網址";
 
 let currentUser = null, questionsData = [], userAnswers = {}, starredQuestions = {}, lastExamResults = null;
 let timeLeft = 30 * 60, timerInterval = null, timerStyle = 'embedded', isQuizActive = false;
@@ -409,9 +409,16 @@ function initQuiz(mode, val) {
     }
     questionsData = data;
     document.getElementById('total-count').textContent = questionsData.length;
-    renderQuiz(questionsData);
-    if (mode !== 'single_random') { isQuizActive = true; updateTimerVisibility(); startTimer(); }
-    document.getElementById('submit-area-wrap').style.display = 'block';
+    
+    if (mode === 'single_random') {
+      renderSingleQuizView(questionsData[0]);
+    } else {
+      renderQuiz(questionsData);
+      isQuizActive = true; 
+      updateTimerVisibility(); 
+      startTimer();
+      document.getElementById('submit-area-wrap').style.display = 'block';
+    }
   }).catch(err => {
     document.getElementById('quiz-container').innerHTML = `<div class="card">❌ 載入失敗：${err.message}</div>`;
   });
@@ -539,6 +546,97 @@ function renderQuiz(questions) {
   triggerMathJax();
 }
 
+// ⚡ 修正：隨機單題微學習模式的完整版型渲染與 AI 串接
+function renderSingleQuizView(q) {
+  document.getElementById('view-mode-select').classList.remove('active');
+  document.getElementById('view-quiz').classList.add('active');
+  document.getElementById('quiz-header-bar').style.display = 'none';
+  document.getElementById('student-info-card').style.display = 'none';
+
+  const { stemContent, bottomSvgHtml } = buildStemAndSvgHtml(q);
+  let html = `
+    <div class="card" style="border:2px solid var(--primary); padding:20px;">
+      <div class="q-header-meta">
+        <span class="q-num">⚡ 每日微學習・隨機特訓</span>
+        <button type="button" class="ctrl-btn" onclick="backToHome()">返回首頁</button>
+      </div>
+      <div class="q-title">${stemContent}</div>`;
+  if (bottomSvgHtml) html += bottomSvgHtml;
+
+  html += `<div class="options" id="single-options-box">`;
+  ['A', 'B', 'C', 'D'].forEach(optKey => {
+    const optValRaw = q['opt_' + optKey.toLowerCase()];
+    if (optValRaw !== undefined && optValRaw !== null && optValRaw !== "") {
+      html += `
+        <label class="opt" onclick="checkSingleAnswer('${optKey}', '${q.answer}')">
+          <div style="display:flex; align-items:flex-start; gap:8px; width:100%;">
+            <span>(${optKey})</span> <div style="width:100%;">${optValRaw}</div>
+          </div>
+        </label>`;
+    }
+  });
+  html += `</div>
+    <div id="single-ai-result-area" style="margin-top:20px; display:none;">
+      <div class="ai-coach-box">
+        <div class="ai-coach-title">🤖 隨機一題解題專家（三階段解題路徑）</div>
+        <div id="single-ai-text">正在呼叫 Gemini AI 名師生成三階段解析...</div>
+      </div>
+      <button type="button" class="btn-start" style="margin-top:12px;" onclick="backToHome()">返回首頁繼續挑戰</button>
+    </div>
+  </div>`;
+
+  document.getElementById('quiz-container').innerHTML = html;
+  triggerMathJax();
+}
+
+function checkSingleAnswer(selectedOpt, correctOpt) {
+  const isCorrect = (selectedOpt === correctOpt);
+  let optBoxes = document.querySelectorAll('#single-options-box .opt');
+  optBoxes.forEach(box => {
+    let text = box.textContent;
+    if (text.includes(`(${correctOpt})`)) {
+      box.style.background = 'rgba(78,204,163,0.25)';
+      box.style.borderColor = 'var(--primary)';
+      box.style.fontWeight = 'bold';
+    } else if (text.includes(`(${selectedOpt})`) && !isCorrect) {
+      box.style.background = 'rgba(255,107,107,0.25)';
+      box.style.borderColor = 'var(--accent)';
+    }
+    box.style.pointerEvents = 'none'; // 鎖定點擊
+  });
+
+  document.getElementById('single-ai-result-area').style.display = 'block';
+  fetchSingleAiExplanation(questionsData[0], selectedOpt);
+}
+
+function fetchSingleAiExplanation(q, userAns) {
+  let prompt = `請針對以下國小教師檢定數學試題提供專業的三階段解題路徑：
+【題幹】${q.stem}
+【正確答案】(${q.answer})
+【考生選擇】(${userAns || '未作答'})
+請嚴格按照以下結構回答：
+1. 🎯 核心考點定位 (1句話)
+2. 💡 逐步拆解關鍵 (Step 1, Step 2 條列式)
+3. ⚠️ 考生避坑指南`;
+
+  fetch(GAS_API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'call_gemini', role: 'single_question', prompt: prompt })
+  })
+  .then(res => res.json())
+  .then(res => {
+    if (res.status === 'success') {
+      document.getElementById('single-ai-text').innerHTML = formatMarkdownToHtml(res.aiResponse);
+    } else {
+      document.getElementById('single-ai-text').innerHTML = `⚠️ 無法取得 AI 回饋：${res.message}`;
+    }
+    triggerMathJax();
+  })
+  .catch(err => {
+    document.getElementById('single-ai-text').textContent = 'AI 網路請求失敗：' + err.message;
+  });
+}
+
 function handleSelect(qIndex, optKey) {
   userAnswers[qIndex] = optKey;
   document.getElementById(`s${qIndex + 1}`).textContent = '已作答';
@@ -573,6 +671,7 @@ function closeAlertModal() { document.getElementById('alertModal').classList.rem
 function backToHome() {
   if(timerInterval) clearInterval(timerInterval);
   isQuizActive = false;
+  document.getElementById('quiz-header-bar').style.display = 'flex';
   document.getElementById('reportModal').classList.remove('show');
   document.getElementById('profileModal').classList.remove('show');
   document.getElementById('view-quiz').classList.remove('active');
@@ -583,8 +682,8 @@ function backToHome() {
 function confirmBackToHome() { backToHome(); }
 
 function submitQuiz(isAuto = false) {
-  const name = (currentMode === 'single_random') ? '訪客' : document.getElementById('sName').value.trim();
-  if (!isAuto && currentMode !== 'single_random' && !name) { alert('請輸入您的姓名再交卷！'); return; }
+  const name = document.getElementById('sName').value.trim();
+  if (!isAuto && !name) { alert('請輸入您的姓名再交卷！'); return; }
   if (timerInterval) clearInterval(timerInterval);
   isQuizActive = false;
   
@@ -609,11 +708,6 @@ function submitQuiz(isAuto = false) {
   const realScore52 = correctCount * 2;
   lastExamResults = { name: name || '匿名', score100: finalScore100, realScore52, correctCount, totalQ, domainStats };
 
-  if (currentMode === 'single_random') {
-    renderSingleAiFeedback(questionsData[0], userAnswers[0]);
-    return;
-  }
-
   document.getElementById('report-name-info').textContent = `考生：${name} | 模式：${currentMode}`;
   document.getElementById('report-score').textContent = `${finalScore100} 分`;
   document.getElementById('report-summary').textContent = `🎯 實戰得分：${realScore52}/52 分（答對 ${correctCount}/${totalQ} 題）`;
@@ -630,54 +724,6 @@ function submitQuiz(isAuto = false) {
   }
 }
 
-function renderSingleAiFeedback(q, uAns) {
-  document.getElementById('view-quiz').classList.remove('active');
-  document.getElementById('view-review').classList.add('active');
-  document.getElementById('review-title').textContent = "⚡ 隨機一題微學習・AI 三階段解題路徑";
-  document.getElementById('review-score-summary').textContent = `您的選擇：(${uAns || '未作答'}) ｜ 正確答案：(${q.answer})`;
-
-  let html = `
-    <div class="card">
-      <div class="q-title">${q.stem}</div>
-      <div style="margin:15px 0; padding:12px; background:var(--accent-light); border-radius:8px;">
-        <p style="font-weight:bold; color:var(--primary);">🎯 正確解答：(${q.answer})</p>
-      </div>
-      <div class="ai-coach-box">
-        <div class="ai-coach-title">🤖 隨機一題解題專家（三階段解題路徑）</div>
-        <div id="single-ai-text">正在呼叫 Gemini AI 名師生成三階段解析...</div>
-      </div>
-      <button type="button" class="btn-start" style="margin-top:15px;" onclick="backToHome()">返回首頁繼續挑戰</button>
-    </div>
-  `;
-  document.getElementById('review-container').innerHTML = html;
-  triggerMathJax(); // 確保渲染數學公式
-
-  let prompt = `請針對以下國小教師檢定數學試題提供專業的三階段解題路徑：
-【題幹】${q.stem}
-【正確答案】(${q.answer})
-請嚴格按照以下三階段結構回答：
-1. 🎯 核心考點定位 (1句話)
-2. 💡 逐步拆解關鍵 (2-3個清晰步驟)
-3. ⚠️ 考生避坑指南`;
-
-  fetch(GAS_API_URL, {
-    method: 'POST',
-    body: JSON.stringify({ action: 'call_gemini', role: 'single_question', prompt: prompt })
-  })
-  .then(res => res.json())
-  .then(res => {
-    if (res.status === 'success') {
-      document.getElementById('single-ai-text').innerHTML = res.aiResponse.replace(/\n/g, '<br>');
-    } else {
-      document.getElementById('single-ai-text').innerHTML = `⚠️ 無法取得 AI 回饋：${res.message}`;
-    }
-    triggerMathJax(); // 確保 AI 回傳的 LaTeX 數學公式正常渲染
-  })
-  .catch(err => {
-    document.getElementById('single-ai-text').textContent = 'AI 網路請求失敗：' + err.message;
-  });
-}
-
 function fetchAiCoachFeedback(score, stats, wrongItemsDetails) {
   let prompt = `本次測驗總得分：${score}分。各領域統計：${JSON.stringify(stats)}。錯題明細：${JSON.stringify(wrongItemsDetails)}。請給予引導教練健檢報告。`;
   fetch(GAS_API_URL, {
@@ -686,7 +732,7 @@ function fetchAiCoachFeedback(score, stats, wrongItemsDetails) {
   })
   .then(res => res.json())
   .then(res => {
-    document.getElementById('ai-coach-content').innerHTML = (res.status === 'success') ? res.aiResponse.replace(/\n/g, '<br>') : `⚠️ 取得 AI 教練回饋失敗：${res.message}`;
+    document.getElementById('ai-coach-content').innerHTML = (res.status === 'success') ? formatMarkdownToHtml(res.aiResponse) : `⚠️ 取得 AI 教練回饋失敗：${res.message}`;
     triggerMathJax();
   })
   .catch(err => {
@@ -746,7 +792,7 @@ function fetchAiConsultantFeedback(history) {
   let prompt = `歷次測驗記錄：${JSON.stringify(history)}。請分析成長軌跡與衝刺建議。`;
   fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: 'call_gemini', role: 'consultant', prompt: prompt }) })
   .then(res => res.json()).then(res => {
-    document.getElementById('ai-consultant-content').innerHTML = (res.status === 'success') ? res.aiResponse.replace(/\n/g, '<br>') : `⚠️ 取得諮詢師回饋失敗：${res.message}`;
+    document.getElementById('ai-consultant-content').innerHTML = (res.status === 'success') ? formatMarkdownToHtml(res.aiResponse) : `⚠️ 取得諮詢師回饋失敗：${res.message}`;
     triggerMathJax();
   })
   .catch(err => {
@@ -754,6 +800,7 @@ function fetchAiConsultantFeedback(history) {
   });
 }
 
+// ⚡ 修正：第四頁檢討詳解，展開時即時呼叫 Gemini AI 取得三階段動態解析
 function enterFourthLayerReview() {
   document.getElementById('reportModal').classList.remove('show');
   document.getElementById('view-quiz').classList.remove('active');
@@ -766,22 +813,25 @@ function enterFourthLayerReview() {
     const qNum = index + 1;
     const userAns = userAnswers[index];
     const isCorrect = (userAns === q.answer);
+    const { stemContent, bottomSvgHtml } = buildStemAndSvgHtml(q);
+
     html += `
       <div class="review-card" style="border:2px solid ${isCorrect ? 'var(--primary)' : 'var(--accent)'};">
         <div class="q-header-meta">
           <span class="q-num">第 ${qNum} 題</span>
           <span style="font-weight:bold; color:${isCorrect ? 'var(--primary)' : 'var(--accent)'};">[ ${isCorrect ? '✅ 答對' : '❌ 答錯'} ]</span>
         </div>
-        <div class="q-title">${q.stem}</div>
+        <div class="q-title">${stemContent}</div>`;
+    if (bottomSvgHtml) html += bottomSvgHtml;
+
+    html += `
         <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border-color);">
           <p style="font-weight:bold;">✅ 正確解答：(${q.answer}) ｜ 您的選擇：(${userAns || '未作答'})</p>
-          <button type="button" class="accordion-btn" onclick="toggleAccordion(this)">
-            <span>📖 展開三步驟詳解思路</span> <span>▾</span>
+          <button type="button" class="accordion-btn" onclick="toggleAccordionAndFetchAI(this, ${index})">
+            <span>📖 展開 AI 三階段詳解思路</span> <span>▾</span>
           </button>
-          <div class="accordion-content">
-            <div class="step-box">1. <strong>題型定位與核心概念</strong>：${q.step1 || '對應教檢數學核心考點。'}</div>
-            <div class="step-box">2. <strong>逐步推導與計算</strong>：${q.step2 || '嚴密執行數學運算與邏輯推理。'}</div>
-            <div class="step-box">3. <strong>避坑指南與結論</strong>：${q.step3 || `確認最佳解為 (${q.answer})。`}</div>
+          <div class="accordion-content" id="review-ai-content-${index}">
+            <div class="step-box">🤖 正在呼叫 Gemini 名師生成即時解析...</div>
           </div>
         </div>
       </div>`;
@@ -790,9 +840,59 @@ function enterFourthLayerReview() {
   triggerMathJax();
 }
 
+let loadedAiReviews = {};
+function toggleAccordionAndFetchAI(btn, qIndex) {
+  const content = btn.nextElementSibling;
+  content.classList.toggle('show');
+  
+  if (content.classList.contains('show') && !loadedAiReviews[qIndex]) {
+    loadedAiReviews[qIndex] = true;
+    const q = questionsData[qIndex];
+    const userAns = userAnswers[qIndex];
+
+    let prompt = `請針對以下國小教師檢定數學試題提供專業的三階段解題路徑：
+【題幹】${q.stem}
+【正確答案】(${q.answer})
+【考生選擇】(${userAns || '未作答'})
+請嚴格按照以下結構回答：
+1. 🎯 核心考點定位 (1句話)
+2. 💡 逐步拆解關鍵 (Step 1, Step 2 條列式)
+3. ⚠️ 考生避坑指南`;
+
+    fetch(GAS_API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'call_gemini', role: 'single_question', prompt: prompt })
+    })
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === 'success') {
+        document.getElementById(`review-ai-content-${qIndex}`).innerHTML = formatMarkdownToHtml(res.aiResponse);
+      } else {
+        document.getElementById(`review-ai-content-${qIndex}`).innerHTML = `<div class="step-box">⚠️ 無法取得 AI 詳解：${res.message}</div>`;
+      }
+      triggerMathJax();
+    })
+    .catch(err => {
+      document.getElementById(`review-ai-content-${qIndex}`).innerHTML = `<div class="step-box">❌ 網路請求失敗：${err.message}</div>`;
+    });
+  }
+}
+
 function toggleAccordion(btn) {
   const content = btn.nextElementSibling;
   content.classList.toggle('show');
+}
+
+// ⚡ 簡易 Markdown 格式化轉譯器（將 ###、** 轉換為合適的 HTML 標籤，解決原始碼外露問題）
+function formatMarkdownToHtml(text) {
+  if (!text) return '';
+  let formatted = text
+    .replace(/^### (.*$)/gim, '<h4 style="color:var(--primary); margin:10px 0 4px 0;">$1</h4>')
+    .replace(/^## (.*$)/gim, '<h3 style="color:var(--primary); margin:12px 0 6px 0;">$1</h3>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--primary);">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+  return formatted;
 }
 
 function triggerMathJax() { 
