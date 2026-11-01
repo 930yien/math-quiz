@@ -546,13 +546,13 @@ function renderQuiz(questions) {
   triggerMathJax();
 }
 
+// ⚡ 修正：隨機單題（微學習模式）完整版型與動態年度題號渲染
 function renderSingleQuizView(q) {
   document.getElementById('view-mode-select').classList.remove('active');
   document.getElementById('view-quiz').classList.add('active');
   document.getElementById('quiz-header-bar').style.display = 'none';
   document.getElementById('student-info-card').style.display = 'none';
 
-  // 💡 動態解析年度與題號標籤
   let sourceYearTag = "";
   if (q.year) {
     let specificNum = "";
@@ -570,6 +570,7 @@ function renderSingleQuizView(q) {
         <span class="q-num">⚡ 每日微學習・隨機特訓${sourceYearTag}</span>
         <button type="button" class="ctrl-btn" onclick="backToHome()">返回首頁</button>
       </div>
+      <div class="q-title">${stemContent}</div>`;
   if (bottomSvgHtml) html += bottomSvgHtml;
 
   html += `<div class="options" id="single-options-box">`;
