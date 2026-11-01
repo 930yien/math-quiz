@@ -47,7 +47,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .view-section { display: none; }
 .view-section.active { display: block; }
 
-/* 第一層精美一致的 3 卡片設計 */
 .modes-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
 @media(min-width: 768px) { .modes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; } }
 .mode-card { background: var(--card-bg); border-radius: 12px; padding: 20px; border: 2px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; }
@@ -74,7 +73,6 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
 .q-num { background: var(--primary); color: #fff; border-radius: 4px; padding: 3px 8px; font-weight: bold; font-size: 0.85rem; }
 .q-title { font-size: 1.05rem; margin-bottom: 14px; line-height: 1.8; white-space: pre-line; }
 
-/* 圖片與 SVG 區塊精準定位 */
 .q-svg-container { text-align: center; margin: 12px 0; }
 .q-svg-container svg, .q-svg-container img { max-width: 60% !important; height: auto !important; display: inline-block; }
 .q-inline-img { display: inline-flex; align-items: center; vertical-align: -0.22em; height: 1.35em; max-width: 2.4em; margin: 0 3px; }
@@ -232,7 +230,7 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
   </div>
 </div>
 
-<!-- 第三層結算報告 Modal -->
+<!-- 第三層結算報告 Modal（已移除關閉視窗按鈕） -->
 <div class="modal-overlay" id="reportModal">
   <div class="modal-content">
     <div class="score-banner">
@@ -247,13 +245,12 @@ p, span, label, input, select, button, div { font-family: inherit !important; }
       <div id="ai-coach-content">正在分析您的作答表現...</div>
     </div>
     <div style="display:flex; gap:10px;">
-      <button type="button" class="btn-start accent" onclick="enterFourthLayerReview()" style="flex:1;">🔍 檢討錯題就上榜</button>
-      <button type="button" class="btn-start" onclick="closeReportModalOnly()" style="flex:1; background:var(--border-color); color:var(--text-main);">關閉視窗</button>
+      <button type="button" class="btn-start accent" onclick="enterFourthLayerReview()" style="width:100%;">🔍 檢討錯題就上榜</button>
     </div>
   </div>
 </div>
 
-<!-- 個人資料 Modal -->
+<!-- 個人資料 Modal（已移除關閉視窗按鈕） -->
 <div class="modal-overlay" id="profileModal">
   <div class="modal-content" style="max-width:760px;">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--border-color); padding-bottom:10px; margin-bottom:15px;">
@@ -325,7 +322,6 @@ function startSingleRandomQuiz() {
   initQuiz('single_random', '1');
 }
 
-/* 💡 修正問題三：載入 metadata 時確保歷屆試題與單元選項完整不遺失 */
 function loadMetadataFromSheet() {
   fetch(`${GAS_API_URL}?mode=metadata`).then(res => res.json()).then(data => {
     const yearSelect = document.getElementById('yearSelect');
@@ -413,7 +409,6 @@ function initQuiz(mode, val) {
   });
 }
 
-/* 💡 修正問題四：完美解析 SVG 結構與 [IMAGE] 標籤，解決 stem 與 ||| 裸露問題 */
 function parseSvgCode(svgCodeStr) {
   let stemMap = {}, inlineMap = {}, optMap = {}, defaultList = [];
   if (!svgCodeStr) return { stemMap, inlineMap, optMap, defaultList };
@@ -472,7 +467,6 @@ function buildStemAndSvgHtml(q) {
     }
   });
 
-  // 萬一只有 [IMAGE] 沒編號
   if (stemContent.includes('[IMAGE]') && parsedSvg.defaultList.length > 0) {
     let svgHtml = `<div class="q-svg-container">${parsedSvg.defaultList[0]}</div>`;
     stemContent = stemContent.replace('[IMAGE]', svgHtml);
@@ -488,7 +482,7 @@ function buildStemAndSvgHtml(q) {
   return { stemContent, bottomSvgHtml };
 }
 
-/* 💡 修正問題二：正確抓取年度與題目編號（如 114學年度第5題） */
+/* 💡 修正問題二：從 q_id 擷取最後面數字呈現 XX年度第XX題 */
 function renderQuiz(questions) {
   let html = `<div style="background:var(--primary); color:#fff; border-radius:8px 8px 0 0; padding:11px 18px; font-weight:700;">數學能力測驗（共 ${questions.length} 題）</div>`;
   
@@ -499,8 +493,12 @@ function renderQuiz(questions) {
     
     let sourceYearTag = "";
     if (currentMode !== 'year' && q.year) {
-      let qNumField = q.question_num || q.no || q.q_num || '';
-      sourceYearTag = ` ｜ ${q.year}學年度${qNumField ? ' 第 ' + qNumField + ' 題' : ''}`;
+      let specificNum = "";
+      if (q.q_id) {
+        let match = String(q.q_id).match(/(\d+)$/);
+        if (match) specificNum = parseInt(match[1], 10);
+      }
+      sourceYearTag = ` ｜ ${q.year}學年度${specificNum ? ' 第 ' + specificNum + ' 題' : ''}`;
     }
 
     html += `
@@ -565,7 +563,6 @@ function showAlertModal(title, msg) {
 }
 function closeAlertModal() { document.getElementById('alertModal').classList.remove('show'); }
 
-/* 💡 修正問題三：返回首頁時同時重新載入 metadata 選單與重置狀態 */
 function backToHome() {
   if(timerInterval) clearInterval(timerInterval);
   isQuizActive = false;
@@ -574,7 +571,7 @@ function backToHome() {
   document.getElementById('view-quiz').classList.remove('active');
   document.getElementById('view-review').classList.remove('active');
   document.getElementById('view-mode-select').classList.add('active');
-  loadMetadataFromSheet(); // 自動重新拉取選單，解決返回後選項變少的問題
+  loadMetadataFromSheet();
 }
 function confirmBackToHome() { backToHome(); }
 
@@ -704,7 +701,6 @@ function renderLineChart(domainStats) {
   });
 }
 
-function openReportModal() { document.getElementById('reportModal').classList.add('show'); }
 function closeReportModalOnly() { document.getElementById('reportModal').classList.remove('show'); }
 
 function openProfileModal() {
